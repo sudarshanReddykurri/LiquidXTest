@@ -1,0 +1,381 @@
+{
+	"Items": [{
+			"question_number": 1,
+			"question": "Set goals and then go after them",
+			"component": "Achievement",
+			"category": "Self",
+			"opposite": "Balance"
+		},
+		{
+			"question_number": 2,
+			"question": "Like a sense of accomplishment",
+			"component": "Achievement",
+			"category": "Self",
+			"opposite": "Balance"
+		},
+		{
+			"question_number": 3,
+			"question": "Take initiative/responsibility; are a self starter",
+			"component": "Achievement",
+			"category": "Self",
+			"opposite": "Balance"
+		},
+		{
+			"question_number": 4,
+			"question": "Have high expectations; tend to be critical and unforgiving of own mistakes",
+			"component": "Achievement",
+			"category": "Self",
+			"opposite": "Balance"
+		},
+		{
+			"question_number": 5,
+			"question": "Would rather do something yourself than delegate it",
+			"component": "Achievement",
+			"category": "Self",
+			"opposite": "Balance"
+		},
+		{
+			"question_number": 6,
+			"question": "Go the extra mile; often exceed expectations",
+			"component": "Achievement",
+			"category": "Self",
+			"opposite": "Balance"
+		},
+		{
+			"question_number": 7,
+			"question": "Are competitive and like 'to be the best'",
+			"component": "Achievement",
+			"category": "Self",
+			"opposite": "Balance"
+		},
+		{
+			"question_number": 8,
+			"question": "Have a high-level of work commitment; will do whatever it takes to complete a job",
+			"component": "Achievement",
+			"category": "Self",
+			"opposite": "Balance"
+		},
+		{
+			"question_number": 9,
+			"question": "Are results and goal-oriented",
+			"component": "Achievement",
+			"category": "Self",
+			"opposite": "Balance"
+		},
+		{
+			"question_number": 10,
+			"question": "Are an independent and creative thinker",
+			"component": "Autonomy",
+			"category": "Self",
+			"opposite": "Security"
+		},
+		{
+			"question_number": 11,
+			"question": "Dislike interruptions when working",
+			"component": "Autonomy",
+			"category": "Self",
+			"opposite": "Security"
+		},
+		{
+			"question_number": 12,
+			"question": "Pursue your own destiny and choose your own path",
+			"component": "Autonomy",
+			"category": "Self",
+			"opposite": "Security"
+		},
+		{
+			"question_number": 13,
+			"question": "Like to work independently and/or alone",
+			"component": "Autonomy",
+			"category": "Self",
+			"opposite": "Security"
+		},
+		{
+			"question_number": 14,
+			"question": "Prefer to manage projects rather than people",
+			"component": "Autonomy",
+			"category": "Self",
+			"opposite": "Security"
+		},
+		{
+			"question_number": 15,
+			"question": "Are not afraid to break the rules",
+			"component": "Autonomy",
+			"category": "Self",
+			"opposite": "Security"
+		},
+		{
+			"question_number": 16,
+			"question": "Prefer to make your own decisions, rather than use a consensus approach",
+			"component": "Autonomy",
+			"category": "Self",
+			"opposite": "Security"
+		},
+		{
+			"question_number": 17,
+			"question": "Avoid volunteering for team or group projects",
+			"component": "Autonomy",
+			"category": "Self",
+			"opposite": "Security"
+		},
+		{
+			"question_number": 18,
+			"question": "Dislike interference and being told what to do",
+			"component": "Autonomy",
+			"category": "Self",
+			"opposite": "Security"
+		},
+		{
+			"question_number": 19,
+			"question": "Are reluctant to take on extra work if it will get in the way of your personal life",
+			"component": "Balance",
+			"category": "Environment",
+			"opposite": "Achievement"
+		},
+		{
+			"question_number": 20,
+			"question": "Strive for a comfortable, well-balanced work and home environment",
+			"component": "Balance",
+			"category": "Environment",
+			"opposite": "Achievement"
+		},
+		{
+			"question_number": 21,
+			"question": "Like to talk about your life outside of work",
+			"component": "Balance",
+			"category": "Environment",
+			"opposite": "Achievement"
+		},
+		{
+			"question_number": 22,
+			"question": "Enjoy having each day be different from the day before",
+			"component": "Balance",
+			"category": "Environment",
+			"opposite": "Achievement"
+		},
+		{
+			"question_number": 23,
+			"question": "Have a wide variety of interests outside of work",
+			"component": "Balance",
+			"category": "Environment",
+			"opposite": "Achievement"
+		},
+		{
+			"question_number": 24,
+			"question": "Are more focused on being satisfied at work than achieving and attaining status",
+			"component": "Balance",
+			"category": "Environment",
+			"opposite": "Achievement"
+		},
+		{
+			"question_number": 25,
+			"question": "Leave work on time; prefer not to work overtime or weekends",
+			"component": "Balance",
+			"category": "Environment",
+			"opposite": "Achievement"
+		},
+		{
+			"question_number": 26,
+			"question": "Are more productive in the absence of stress",
+			"component": "Balance",
+			"category": "Environment",
+			"opposite": "Achievement"
+		},
+		{
+			"question_number": 27,
+			"question": "Are relaxed, laid back, easygoing; don't get upset easily",
+			"component": "Balance",
+			"category": "Environment",
+			"opposite": "Achievement"
+		},
+		{
+			"question_number": 28,
+			"question": "Like to lead and guide the actions of others; prefer leadership roles",
+			"component": "Power/Influence",
+			"category": "Other",
+			"opposite": "Relationship"
+		},
+		{
+			"question_number": 29,
+			"question": "Like to 'rally the troops;' energize others in pursuit of a goal",
+			"component": "Power/Influence",
+			"category": "Other",
+			"opposite": "Relationship"
+		},
+		{
+			"question_number": 30,
+			"question": "Find public recognition and admiration of skills energizing",
+			"component": "Power/Influence",
+			"category": "Other",
+			"opposite": "Relationship"
+		},
+		{
+			"question_number": 31,
+			"question": "Enjoy spending time with higher-level managers and leaders",
+			"component": "Power/Influence",
+			"category": "Other",
+			"opposite": "Relationship"
+		},
+		{
+			"question_number": 32,
+			"question": "Like to influence decisions and take charge",
+			"component": "Power/Influence",
+			"category": "Other",
+			"opposite": "Relationship"
+		},
+		{
+			"question_number": 33,
+			"question": "Are interested in advancement",
+			"component": "Power/Influence",
+			"category": "Other",
+			"opposite": "Relationship"
+		},
+		{
+			"question_number": 34,
+			"question": "Find yourself seeking opportunities for authority and control",
+			"component": "Power/Influence",
+			"category": "Other",
+			"opposite": "Relationship"
+		},
+		{
+			"question_number": 35,
+			"question": "Enjoy high profile projects that provide visibility",
+			"component": "Power/Influence",
+			"category": "Other",
+			"opposite": "Relationship"
+		},
+		{
+			"question_number": 36,
+			"question": "Often emerge as the informal leader on teams and projects",
+			"component": "Power/Influence",
+			"category": "Other",
+			"opposite": "Relationship"
+		},
+		{
+			"question_number": 37,
+			"question": "Are friendly; known as a 'people person'",
+			"component": "Relationship",
+			"category": "Other",
+			"opposite": "Power/Influence"
+		},
+		{
+			"question_number": 38,
+			"question": "Like to participate and be a part of a team",
+			"component": "Relationship",
+			"category": "Other",
+			"opposite": "Power/Influence"
+		},
+		{
+			"question_number": 39,
+			"question": "Like social activities, such as happy hours/birthday celebrations, etc.",
+			"component": "Relationship",
+			"category": "Other",
+			"opposite": "Power/Influence"
+		},
+		{
+			"question_number": 40,
+			"question": "Prefer to work with others rather than work alone",
+			"component": "Relationship",
+			"category": "Other",
+			"opposite": "Power/Influence"
+		},
+		{
+			"question_number": 41,
+			"question": "Are collaborative and prefer group consensus",
+			"component": "Relationship",
+			"category": "Other",
+			"opposite": "Power/Influence"
+		},
+		{
+			"question_number": 42,
+			"question": "Build rapport easily; are approachable",
+			"component": "Relationship",
+			"category": "Other",
+			"opposite": "Power/Influence"
+		},
+		{
+			"question_number": 43,
+			"question": "Open up about yourself; are self-disclosing",
+			"component": "Relationship",
+			"category": "Other",
+			"opposite": "Power/Influence"
+		},
+		{
+			"question_number": 44,
+			"question": "Like to be involved with other people",
+			"component": "Relationship",
+			"category": "Other",
+			"opposite": "Power/Influence"
+		},
+		{
+			"question_number": 45,
+			"question": "Like to develop friendships with people that you work with",
+			"component": "Relationship",
+			"category": "Other",
+			"opposite": "Power/Influence"
+		},
+		{
+			"question_number": 46,
+			"question": "Prefer plenty of information and 'no surprises'",
+			"component": "Security",
+			"category": "Environment",
+			"opposite": "Autonomy"
+		},
+		{
+			"question_number": 47,
+			"question": "Are a loyal employee",
+			"component": "Security",
+			"category": "Environment",
+			"opposite": "Autonomy"
+		},
+		{
+			"question_number": 48,
+			"question": "Enjoy long steady tasks",
+			"component": "Security",
+			"category": "Environment",
+			"opposite": "Autonomy"
+		},
+		{
+			"question_number": 49,
+			"question": "Like processes and procedures",
+			"component": "Security",
+			"category": "Environment",
+			"opposite": "Autonomy"
+		},
+		{
+			"question_number": 50,
+			"question": "Like structure and consistency",
+			"component": "Security",
+			"category": "Environment",
+			"opposite": "Autonomy"
+		},
+		{
+			"question_number": 51,
+			"question": "Tend to avoid risk",
+			"component": "Security",
+			"category": "Environment",
+			"opposite": "Autonomy"
+		},
+		{
+			"question_number": 52,
+			"question": "Dependable and reliable",
+			"component": "Security",
+			"category": "Environment",
+			"opposite": "Autonomy"
+		},
+		{
+			"question_number": 53,
+			"question": "Like job security and a regular income",
+			"component": "Security",
+			"category": "Environment",
+			"opposite": "Autonomy"
+		},
+		{
+			"question_number": 54,
+			"question": "Prefer predictability to frequent change",
+			"component": "Security",
+			"category": "Environment",
+			"opposite": "Autonomy"
+		}
+	]
+}
