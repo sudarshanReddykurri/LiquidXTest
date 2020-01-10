@@ -21,6 +21,7 @@ import NavBar from "../../shared/NavBar";
 import ReactUnityBridge from "./reactUnityBridge";
 import { Modules } from "./gameModules";
 import { height, width } from "@material-ui/system";
+import authService from "../../services/auth/authService";
 
 const useStyles = makeStyles(theme => ({
   icon: {
@@ -128,15 +129,27 @@ class AssessmentModules extends Component {
     this.state = { gamenumber: 0 };
   }
   componentWillMount = () => {
+    Game_Play.length = 0;
     game_play_order.map(game_key => {
       Game_Play.push(GameData[game_key]);
     });
     console.log("HELLO " + Game_Play.length);
   };
 
+  onUserLogout = () => {
+    console.log("onUserLogout");
+    //let hello = localStorage.getItem("@rootStoreKey");
+    //console.log("TCL: AssessmentHomeContainer -> onUserLogout -> hello", hello.user);
+    authService.logout().then(res => {
+      console.log("TCL: AssessmentModules -> onUserLogout -> res", res);
+      this.props.history.push("/login");
+    });
+  };
+
   render() {
     return (
       <div>
+        <NavBar onLogOut={this.onUserLogout} />
         <Main_UI />
       </div>
     );
@@ -172,6 +185,7 @@ function FullScreenDialog() {
         open={open}
         onClose={handleClose}
         TransitionComponent={Transition}
+        disableEscapeKeyDown={true}
       >
         <AppBar className={classes.appBar}>
           <Toolbar>
@@ -209,11 +223,11 @@ function Main_UI() {
   return (
     <React.Fragment>
       <CssBaseline />
-      <NavBar />
+
       <main>
         {/* Hero unit */}
         <div className={classes.heroContent}>
-          <Container maxWidth="sm">
+          {/* <Container maxWidth="sm">
             <Typography
               component="h1"
               variant="h2"
@@ -233,7 +247,7 @@ function Main_UI() {
               organization. Make sure you are in a suitable environment to take
               the assessment.
             </Typography>
-          </Container>
+          </Container> */}
         </div>
         <Container className={classes.cardGrid} maxWidth="md">
           {/* End hero unit */}

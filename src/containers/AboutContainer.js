@@ -10,9 +10,11 @@ import {
   Typography,
   withStyles
 } from "@material-ui/core";
+import { inject, observer } from "mobx-react";
 import DescriptionIcon from "@material-ui/icons/Description";
 import { flexbox } from "@material-ui/system";
 import { deepOrange, deepPurple } from '@material-ui/core/colors';
+import { withRouter } from 'react-router-dom';
 
 const styles = theme => ({
   card: {
@@ -77,6 +79,7 @@ class AboutContainer extends Component {
       emailId: "demo@gmail.com",
       number: "9191919191"
     };
+   // console.log("this.props.rootTree",this.props)
   }
 
   render() {
@@ -97,7 +100,7 @@ class AboutContainer extends Component {
             <br />
               <div className={classes.avatar}>
                 <Avatar className={[classes.purple, classes.large]}>
-                  OP
+                {this.props.rootTree.user.fullName.charAt(0)}
                 </Avatar>
               </div>
               {/* <CardMedia
@@ -136,7 +139,7 @@ class AboutContainer extends Component {
                   variant={"caption"}
                   align="right"
                 >
-                  {this.state.name}
+                  {this.props.rootTree.user.fullName}
                 </Typography>
               </div>
               {/* <Divider className={classes.divider} light /> */}
@@ -153,7 +156,8 @@ class AboutContainer extends Component {
                   variant={"caption"}
                   align="right"
                 >
-                  {this.state.emailId}
+                {this.props.rootTree.user.emailId}
+                  {/* {this.state.emailId} */}
                 </Typography>
               </div>
               {/* <Divider className={classes.divider} light /> */}
@@ -170,7 +174,7 @@ class AboutContainer extends Component {
                   variant={"caption"}
                   align="right"
                 >
-                  {this.state.number}
+                  {this.props.rootTree.user.mobileNo}
                 </Typography>
               </div>
             </Card>
@@ -181,4 +185,6 @@ class AboutContainer extends Component {
   }
 }
 
-export default withStyles(styles)(AboutContainer);
+// export default withRouter(withStyles(styles)((observer(AboutContainer))));
+
+export default withRouter(withStyles(styles)(inject("rootTree")(observer(AboutContainer))))

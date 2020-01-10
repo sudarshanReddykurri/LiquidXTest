@@ -1,7 +1,14 @@
 import React from "react";
-import { Switch, Route, Link } from 'react-router-dom';
+import { Switch, Route, Link } from "react-router-dom";
 
-import { AppBar, Button, IconButton, Toolbar, Typography,   withStyles } from "@material-ui/core";
+import {
+  AppBar,
+  Button,
+  IconButton,
+  Toolbar,
+  Typography,
+  withStyles
+} from "@material-ui/core";
 import MenuIcon from "@material-ui/icons/Menu";
 
 const styles = theme => ({
@@ -9,14 +16,16 @@ const styles = theme => ({
   flex: { flex: 1 },
   menuButton: { marginLeft: -12, marginRight: 20 }
 });
-const NavBar = withStyles(styles)(({ classes }) => (
-  <div className={classes.root}>
-    {" "}
-    <AppBar position="fixed">
+
+const NavBar = ({ classes, onLogOut }) => {
+  return (
+    <div className={classes.root}>
       {" "}
-      <Toolbar>
+      <AppBar position="fixed">
         {" "}
-        {/* <IconButton
+        <Toolbar>
+          {" "}
+          {/* <IconButton
           className={classes.menuButton}
           color="inherit"
           aria-label="Menu"
@@ -24,14 +33,20 @@ const NavBar = withStyles(styles)(({ classes }) => (
           {" "}
           <MenuIcon />{" "}
         </IconButton>{" "} */}
-        <Typography variant="title" color="inherit" className={classes.flex}>
-          {" "}
-          PerspectAI{" "}
-        </Typography>{" "}
-        <Button color="inherit" component={Link} to="/about">About</Button>{" "}
-        <Button color="inherit" component={Link} to="/logout">Logout</Button>{" "}
-      </Toolbar>{" "}
+          <Typography variant="title" color="inherit" className={classes.flex}>
+            {" "}
+            PerspectAI{" "}
+          </Typography>{" "}
+          <Button color="inherit" component={Link} to="/about">
+            About
+          </Button>{" "}
+          <Button color="inherit" onClick={onLogOut}>
+            Logout
+          </Button>{" "}
+        </Toolbar>{" "}
       </AppBar>{" "}
-  </div>
-));
-export default NavBar;
+    </div>
+  );
+};
+
+export default withStyles(styles)(NavBar);

@@ -8,7 +8,8 @@ import {
   Switch,
   Link
 } from "react-router-dom";
-
+import PrivateRoute from "../components/PrivateRoute";
+import NoAuthRoute from "../components/NoAuthRoute";
 import createBrowserHistory from "history/createBrowserHistory";
 import { RouterStore, syncHistoryWithStore } from "mobx-react-router";
 import { Provider } from "mobx-react";
@@ -57,40 +58,29 @@ const AppRoutes = forwardRef((props, ref) => {
           of them to render at a time
         */}
       {/* <Provider {...stores}> */}
-        <Switch>
-          <Route  path="/signup" component={SignupContainer} />
-          {/* <Route path="/" component={LoginContainer} /> */}
-          <Route  path="/login" component={LoginContainer} />
-          <Route
-            
-            path="/home"
-            component={AssessmentHomeContainer}
-          />
-          <Route
-            
-            exact
-            path="/forgot"
-            component={ForgotPasswordContainer}
-          />
-          <Route
-            
-            exact
-            path="/otpverify/:emailId"
-            component={OTPVerifyContainer}
-          />
-          <Route
-            
-            exact
-            path="/updatePassword"
-            component={SetNewPasswordContainer}
-          />
-          <Route  path="/about" component={AboutContainer} />
-          <Route  path="/am" component={AssessmentModules} />
-          <Route  path="/am1" component={AssessmentModules} />
-         
-          <Redirect from="/" exact to="/login" />
-          <Route  path="" component={NotFound} />
-        </Switch>
+      <Switch>
+        <NoAuthRoute path="/signup" component={SignupContainer} />
+        {/* <Route path="/" component={LoginContainer} /> */}
+        <NoAuthRoute path="/login" component={LoginContainer} />
+
+        <NoAuthRoute exact path="/forgot" component={ForgotPasswordContainer} />
+        <NoAuthRoute
+          exact
+          path="/otpverify/:emailId"
+          component={OTPVerifyContainer}
+        />
+        <NoAuthRoute
+          exact
+          path="/updatePassword"
+          component={SetNewPasswordContainer}
+        />
+        <PrivateRoute path="/home" component={AssessmentHomeContainer} />
+        <PrivateRoute path="/about" component={AboutContainer} />
+        <PrivateRoute path="/am" component={AssessmentModules} />
+
+        <Redirect from="/" exact to="/login" />
+        <Route path="" component={NotFound} />
+      </Switch>
       {/* </Provider> */}
     </Router>
   );

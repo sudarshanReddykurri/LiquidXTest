@@ -16,13 +16,17 @@ import {
   withStyles
 } from "@material-ui/core";
 import { inject, observer } from "mobx-react";
-import { Link } from "react-router-dom";
+import { Redirect, Link } from "react-router-dom";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
 import apiCall from "../../services/apiCalls/apiService";
-import jumpTo from "../../services/navigation";
+import authService from "../../services/auth/authService";
+//import jumpTo from "../../services/navigation";
+// or we can use withRouter higher order component from react-router-dom
+import { withRouter } from 'react-router-dom';
+// This will give history prop which we can use to navigate
 
 const styles = theme => ({
   paper: {
@@ -92,6 +96,15 @@ class LoginContainer extends Component {
     const { classes, rootTree } = this.props;
     if (!rootTree) return null;
 
+    const fromLocation = this.props.location;
+    console.log("TCL: LoginContainer -> render -> fromLocation", this.props.location)
+    // if (fromLocation.state && fromLocation.state.nextPathname) {
+  
+    // }
+    // let { from } = this.props.location.state || { from: { pathname: "/" } };
+    // console.log(from);
+    // if (authService.isLoggedIn()) return <Redirect to={from} />;
+
     return (
       <Container component="main" maxWidth="xs">
         <CssBaseline />
@@ -131,7 +144,10 @@ class LoginContainer extends Component {
                     const { rootTree } = this.props;
                     if (!rootTree) return null;
                     let userData = res.data.data;
-                    console.log("TCL: LoginContainer -> render -> userData", userData);
+                    console.log(
+                      "TCL: LoginContainer -> render -> userData",
+                      userData
+                    );
 
                     rootTree.user.updateUser(
                       userData.userId,
@@ -145,8 +161,9 @@ class LoginContainer extends Component {
                       userData.acc_lvl
                     );
 
-                    jumpTo("/home");
-
+                    authService.setToken(userData.auth_token);
+                    this.props.history.push("/home")
+                    //jumpTo("/home");
                   }
                 })
                 .catch(err => {
@@ -240,4 +257,4 @@ class LoginContainer extends Component {
 /* this is how you use the HeroStore by
     injecting it to your component. 
     The Store can be found in the Provider */
-export default withStyles(styles)(inject("rootTree")(observer(LoginContainer)));
+export default withRouter(withStyles(styles)(inject("rootTree")(observer(LoginContainer))));

@@ -2,6 +2,7 @@ import React, { Component, Fragment } from "react";
 import AssessmentCard from "../../components/assessmentCard";
 import {
   Box,
+  CircularProgress,
   Container,
   CssBaseline,
   Grid,
@@ -13,6 +14,8 @@ import NavBar from "../../shared/NavBar";
 import StickyFooter from "../../shared/StickyFooter";
 import { epochToJsDate } from "../../utils/timeUtils";
 import apiCall from "../../services/apiCalls/apiService";
+import authService from "../../services/auth/authService";
+import { withRouter } from 'react-router-dom';
 
 class AssessmentHomeContainer extends Component {
   constructor(props) {
@@ -21,12 +24,17 @@ class AssessmentHomeContainer extends Component {
       assessmentsList: [],
       isLoading: true
     };
+    console.log("AssessmentHomeContainer")
     this.fetchAssessments();
+  }
+
+  componentDidMount() {
+   
   }
 
   fetchAssessments = async () => {
     const { classes, rootTree } = this.props;
-
+    console.log("fetchAssessments")
     if (!rootTree) return null;
 
     apiCall
@@ -53,6 +61,9 @@ class AssessmentHomeContainer extends Component {
               assessment.logo_url
             );
           });
+          this.setState({
+            isLoading: false
+          });
         }
       })
       .catch(err => {
@@ -61,6 +72,20 @@ class AssessmentHomeContainer extends Component {
           err
         );
       });
+  };
+
+  openAssessments(assessmentDetails){
+    this.props.history.push("/am")
+  }
+
+  onUserLogout = () => {
+    console.log("onUserLogout");
+    //let hello = localStorage.getItem("@rootStoreKey");
+    //console.log("TCL: AssessmentHomeContainer -> onUserLogout -> hello", hello.user);
+    authService.logout().then(res=>{
+    console.log("TCL: AssessmentHomeContainer -> onUserLogout -> res", res)
+    this.props.history.push("/login");
+    });
   };
 
   componentWillMount = () => {};
@@ -73,43 +98,70 @@ class AssessmentHomeContainer extends Component {
     return (
       <Fragment>
         <CssBaseline />
-        <NavBar />
+        <NavBar onLogOut={this.onUserLogout} />
         <Container className={classes.cardGrid}>
-          <Typography className={classes.pageTitle} component="h1">
-            <Box fontWeight="fontWeightBold" fontSize={24}>
-              Assessments
+          {this.state.isLoading ? (
+            <Box className={classes.progressBar}>
+              <CircularProgress />
+              <Typography className={classes.pageTitle} component="h1">
+                <Box fontWeight="fontWeightBold" fontSize={24}>
+                  Loading Assessments
+                </Box>
+              </Typography>
+              <Typography align="center">
+                <Box fontWeight="fontWeightRegular" fontSize={16}>
+                  Please wait while we are loading the assignments
+                </Box>
+              </Typography>
             </Box>
-          </Typography>
-          <Typography align="center">
-            <Box fontWeight="fontWeightRegular" fontSize={16}>
-              Below are the assessments alloted to you. Try to finish the
-              assignments within the alloted time
-            </Box>
-          </Typography>
-          <br />
-          <Grid container spacing={24} justify="center" direction="row">
-            {rootTree.user.getAssessments().map((assessment, index) => {
-              return (
-                <Grid item key={index} xs={12} sm={6} md={4}>
-                  <AssessmentCard
-                    key={assessment.id}
-                    organizationName={assessment.companyName}
-                    assessmentName={assessment.assessmentName}
-                    expiryTime={epochToJsDate(assessment.expiryTime)}
-                    image={assessment.logoUrl}
-                  ></AssessmentCard>
-                </Grid>
-              );
-            })}
-          </Grid>
+          ) : (
+            <Fragment>
+              <Typography className={classes.pageTitle} component="h1">
+                <Box fontWeight="fontWeightBold" fontSize={24}>
+                  Assessments
+                </Box>
+              </Typography>
+              <Typography align="center">
+                <Box fontWeight="fontWeightRegular" fontSize={16}>
+                  Below are the assessments alloted to you. Try to finish the
+                  assignments within the alloted time
+                </Box>
+              </Typography>
+              <br />
+              <Grid container spacing={24} justify="center" direction="row">
+                {rootTree.user.getAssessments().map((assessment, index) => {
+                  return (
+                    <Grid item key={index} xs={12} sm={6} md={4}>
+                      <AssessmentCard
+                        key={assessment.id}
+                        organizationName={assessment.companyName}
+                        assessmentName={assessment.assessmentName}
+                        expiryTime={epochToJsDate(assessment.expiryTime)}
+                        image={assessment.logoUrl}
+                        onPress={()=>this.openAssessments(assessment)}
+                      ></AssessmentCard>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </Fragment>
+          )}
         </Container>
-        <StickyFooter />
+        {/* <StickyFooter /> */}
       </Fragment>
     );
   }
 }
 
 const styles = theme => ({
+  progressBar: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: theme.spacing(3),
+    paddingBottom: theme.spacing(3)
+  },
   cardGrid: {
     paddingTop: theme.spacing(8),
     paddingBottom: theme.spacing(8)
@@ -121,6 +173,4 @@ const styles = theme => ({
   }
 });
 
-export default withStyles(styles)(
-  inject("rootTree")(observer(AssessmentHomeContainer))
-);
+export default withRouter(withStyles(styles)(inject("rootTree")(observer(AssessmentHomeContainer))))

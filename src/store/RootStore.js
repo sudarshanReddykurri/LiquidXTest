@@ -1,3 +1,4 @@
+// https://github.com/mobxjs/mobx-state-tree/tree/master/packages/mst-example-bookshop/src/stores
 import {
   types,
   onSnapshot,
@@ -81,11 +82,15 @@ const UserModel = types
       });
     }
 
-    function clearAllAssessments(){
-        self.assessments.length = 0;
+    function clearAllAssessments() {
+      self.assessments.length = 0;
     }
 
-    return { updateUser, newAssessment, clearAllAssessments };
+    function remove() {
+      getParent(self, 2).remove(self);
+    }
+
+    return { updateUser, newAssessment, clearAllAssessments, remove };
   })
   .views(self => {
     // Here Memoization takes place and Memoization increases performance
