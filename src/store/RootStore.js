@@ -12,14 +12,129 @@ import uuid from "uuid";
 
 const AssessmentModel = types.model("Assessment", {
   id: types.identifier,
+  assessmentId: types.string,
   assessmentName: types.string,
   companyName: types.string,
   expiryTime: types.number,
   logoUrl: types.string
-  // gamesToPlay: types.array(types.string),
-  // gamePlayOrder: types.array(types.string),
-  // completedGames: types.array(types.string)
 });
+
+export const CurrentAssessmentModel = types
+  .model("CurrentAssessment", {
+    assessmentId: types.string,
+    assessmentName: types.string,
+    companyName: types.string,
+    activationTime: types.number,
+    expiryTime: types.number,
+    logoUrl: types.string,
+    game_play_order: types.array(types.string),
+    games_to_play: types.array(types.string),
+    complete_games: types.array(types.string)
+  })
+  .actions(self => {
+    function update_current_assessment_info(
+      assessmentId,
+      assessmentName,
+      companyName,
+      expiryTime,
+      logoUrl
+    ) {
+      console.log("update_current_assessment_info", assessmentId);
+      applySnapshot(self, {
+        ...self,
+        assessmentId: assessmentId,
+        assessmentName: assessmentName,
+        companyName: companyName,
+        expiryTime: expiryTime,
+        logoUrl: logoUrl
+      });
+    }
+
+    function setup_games(
+      game_play_order,
+      games_to_play,
+      complete_games,
+      activationTime,
+      expiryTime
+    ) {
+      console.log("TCL: functionupdate_games_to_play -> update_games_to_play");
+      self.game_play_order.length = 0;
+      self.games_to_play.length = 0;
+      self.complete_games.length = 0;
+      applySnapshot(self, {
+        ...self,
+        game_play_order: game_play_order,
+        games_to_play: games_to_play,
+        complete_games: complete_games,
+        activationTime: activationTime,
+        expiryTime: expiryTime
+      });
+    }
+
+    function update_activation_time(activationTime) {
+      applySnapshot(self, {
+        ...self,
+        activationTime: activationTime
+      });
+    }
+
+    function update_expiry_time(expiryTime) {
+      applySnapshot(self, {
+        ...self,
+        expiryTime: expiryTime
+      });
+    }
+
+    function update_game_play_order(game_play_order) {
+      console.log(
+        "TCL: functionupdate_game_play_order -> update_game_play_order"
+      );
+      applySnapshot(self, {
+        ...self,
+        game_play_order: game_play_order
+      });
+    }
+
+    function update_games_to_play(games_to_play) {
+      console.log("TCL: functionupdate_games_to_play -> update_games_to_play");
+      applySnapshot(self, {
+        ...self,
+        games_to_play: games_to_play
+      });
+    }
+
+    function update_complete_games(complete_games) {
+      console.log(
+        "TCL: functionupdate_complete_games -> update_complete_games"
+      );
+      applySnapshot(self, {
+        ...self,
+        complete_games: complete_games
+      });
+    }
+    return {
+      setup_games,
+      update_activation_time,
+      update_expiry_time,
+      update_current_assessment_info,
+      update_games_to_play,
+      update_game_play_order,
+      update_complete_games
+    };
+  })
+  .views(self => {
+    function getGamePlayOrder() {
+      return self.game_play_order;
+    }
+    function getGamesToPlay() {
+      return self.games_to_play;
+    }
+    function getCompleteGames() {
+      return self.complete_games;
+    }
+
+    return { getGamePlayOrder, getGamesToPlay, getCompleteGames };
+  });
 
 const UserModel = types
   .model("User", {
@@ -33,7 +148,18 @@ const UserModel = types
     registrationImages: types.boolean,
     auth_token: types.string,
     accessType: types.string,
-    assessments: types.array(AssessmentModel)
+    assessments: types.optional(types.array(AssessmentModel), []),
+    currentAssessment: types.optional(CurrentAssessmentModel, {
+      assessmentId: "",
+      assessmentName: "",
+      companyName: "",
+      activationTime: -1,
+      expiryTime: -1,
+      logoUrl: "",
+      game_play_order: [],
+      games_to_play: [],
+      complete_games: []
+    })
   })
   .actions(self => {
     // Specify list of functions that can alter the tree
@@ -64,7 +190,13 @@ const UserModel = types
       });
     }
 
-    function newAssessment(companyName, assessmentName, expiryTime, logoUrl) {
+    function newAssessment(
+      companyName,
+      assessmentId,
+      assessmentName,
+      expiryTime,
+      logoUrl
+    ) {
       const id = uuid.v4();
       // applySnapshot() function will create new immutable copy of this state tree
       applySnapshot(self, {
@@ -72,6 +204,7 @@ const UserModel = types
         assessments: [
           {
             id,
+            assessmentId,
             assessmentName,
             companyName,
             expiryTime,

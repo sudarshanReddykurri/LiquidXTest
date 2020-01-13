@@ -78,7 +78,7 @@ let data = {
   os_version: "web",
   screen_dpi: "web",
   version: "2.01.10",
-  fcm_token: "web"
+  fcm_token: ""
 };
 class LoginContainer extends Component {
   constructor(props) {

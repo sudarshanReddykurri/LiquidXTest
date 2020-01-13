@@ -1,25 +1,37 @@
-import { RootModel } from "./RootStore";
+import { CurrentAssessmentModel, RootModel } from "./RootStore";
 import { onSnapshot, getSnapshot, applySnapshot } from "mobx-state-tree";
 
 let user_initial_state = {
   user: {
-    //   companyName: "Perspect AI",
+    // companyName: "Perspect AI",
     userId: "",
     fullName: "",
     emailId: "",
     gender: "",
-    mobileNo: 9999999999,
+    mobileNo: -1,
     dob: "",
     registrationImages: false,
     auth_token: "",
     accessType: "",
-    assessments: []
+    assessments: [],
+    currentAssessment: {
+      assessmentId: "",
+      assessmentName: "",
+      companyName: "",
+      activationTime: -1,
+      expiryTime: -1,
+      logoUrl: "",
+      game_play_order: [],
+      games_to_play: [],
+      complete_games: []
+    }
   }
 };
 export const setUpRootStore = () => {
   // Storing store in local storage https://egghead.io/lessons/react-store-store-in-local-storage
   if (localStorage.getItem("userStore")) {
     const json = JSON.parse(localStorage.getItem("userStore"));
+    //const current_assessment = CurrentAssessmentModel.create(json.user.currentAssessment);
     user_initial_state = json;
   }
   const rootTree = RootModel.create(user_initial_state);

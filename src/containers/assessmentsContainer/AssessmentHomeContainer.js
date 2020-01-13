@@ -15,26 +15,27 @@ import StickyFooter from "../../shared/StickyFooter";
 import { epochToJsDate } from "../../utils/timeUtils";
 import apiCall from "../../services/apiCalls/apiService";
 import authService from "../../services/auth/authService";
-import { withRouter } from 'react-router-dom';
+import { withRouter } from "react-router-dom";
+
 
 class AssessmentHomeContainer extends Component {
   constructor(props) {
     super(props);
     this.state = {
       assessmentsList: [],
-      isLoading: true
+      isLoading: true,
+      isFetchingAssessment: false
     };
-    console.log("AssessmentHomeContainer")
+    console.log("AssessmentHomeContainer");
     this.fetchAssessments();
   }
 
-  componentDidMount() {
-   
-  }
+  componentDidMount() {}
 
   fetchAssessments = async () => {
     const { classes, rootTree } = this.props;
-    console.log("fetchAssessments")
+    console.log("fetchAssessments");
+    // rootTree.user.currentAssessment.update_games_to_play();
     if (!rootTree) return null;
 
     apiCall
@@ -56,6 +57,7 @@ class AssessmentHomeContainer extends Component {
 
             rootTree.user.newAssessment(
               assessment.org_name,
+              assessment.assmt_id,
               assessment.assmt_name,
               assessment.end_date,
               assessment.logo_url
@@ -74,17 +76,39 @@ class AssessmentHomeContainer extends Component {
       });
   };
 
-  openAssessments(assessmentDetails){
-    this.props.history.push("/am")
+  goToAssessment(assessment) {
+    const { rootTree } = this.props;
+    // this.setState(
+    //   {
+    //     isFetchingAssessment: true
+    //   },
+    //   () => {
+    //     console.log("isFetchingAssessment");
+    //   }
+    // );
+     const { id, assessmentId, assessmentName, companyName, expiryTime, logoUrl } = assessment;
+    rootTree.user.currentAssessment.update_current_assessment_info(
+      assessmentId,
+      assessmentName,
+      companyName,
+      expiryTime,
+      logoUrl
+    );
+    // Store.AssessmentId = assmt_id;
+    this.props.history.push("/am");
   }
+
+  // openAssessments(assessmentDetails){
+  //   this.props.history.push("/am")
+  // }
 
   onUserLogout = () => {
     console.log("onUserLogout");
     //let hello = localStorage.getItem("@rootStoreKey");
     //console.log("TCL: AssessmentHomeContainer -> onUserLogout -> hello", hello.user);
-    authService.logout().then(res=>{
-    console.log("TCL: AssessmentHomeContainer -> onUserLogout -> res", res)
-    this.props.history.push("/login");
+    authService.logout().then(res => {
+      console.log("TCL: AssessmentHomeContainer -> onUserLogout -> res", res);
+      this.props.history.push("/login");
     });
   };
 
@@ -128,7 +152,7 @@ class AssessmentHomeContainer extends Component {
                 </Box>
               </Typography>
               <br />
-              <Grid container spacing={24} justify="center" direction="row">
+              <Grid container spacing={24} justify="left" direction="row">
                 {rootTree.user.getAssessments().map((assessment, index) => {
                   return (
                     <Grid item key={index} xs={12} sm={6} md={4}>
@@ -138,7 +162,7 @@ class AssessmentHomeContainer extends Component {
                         assessmentName={assessment.assessmentName}
                         expiryTime={epochToJsDate(assessment.expiryTime)}
                         image={assessment.logoUrl}
-                        onPress={()=>this.openAssessments(assessment)}
+                        onPress={() => this.goToAssessment(assessment)}
                       ></AssessmentCard>
                     </Grid>
                   );
@@ -173,4 +197,6 @@ const styles = theme => ({
   }
 });
 
-export default withRouter(withStyles(styles)(inject("rootTree")(observer(AssessmentHomeContainer))))
+export default withRouter(
+  withStyles(styles)(inject("rootTree")(observer(AssessmentHomeContainer)))
+);

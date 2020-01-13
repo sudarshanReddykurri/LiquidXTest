@@ -1,5 +1,4 @@
 // The history object allows you to manage and handle the browser history inside your views or components.
-
 //     length: (number), the number of entries in the history stack
 //     action: (string), the current action (PUSH, REPLACE or POP)
 //     location: (object), the current location
@@ -15,7 +14,6 @@ export const registerNav = ref => {
 console.log("TCL: ref", ref)
   history = ref.history;
 };
-
 const jumpTo = uri => {
   history.push(uri);
 };
