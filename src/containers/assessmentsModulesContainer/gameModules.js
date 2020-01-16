@@ -90,7 +90,7 @@ export const Modules = {
   "mob-12": {
     module_name: "VIDEO INTERVIEW",
     key: "mob-12",
-    module_icon_path: require("../../assets/Game_Icons/Motives.png"),
+    module_icon_path: require("../../assets/Game_Icons/Video_Interview.png"),
     module_status: "locked",
     module_state: "offline",
     module_source: "react"
@@ -146,7 +146,7 @@ export const Modules = {
   "mob-17": {
     module_name: "BRAIN SWITCH",
     key: "mob-17",
-    module_icon_path: require("../../assets/Game_Icons/Express_Agent.png"),
+    module_icon_path: require("../../assets/Game_Icons/Brain_Switch.png"),
     module_status: "locked",
     module_state: "offline",
     module_source: "unity"
@@ -154,7 +154,7 @@ export const Modules = {
   "mob-18": {
     module_name: "ARITHMA",
     key: "mob-18",
-    module_icon_path: require("../../assets/Game_Icons/Express_Agent.png"),
+    module_icon_path: require("../../assets/Game_Icons/Arithma.png"),
     module_status: "locked",
     module_state: "offline",
     module_source: "unity"
@@ -162,7 +162,7 @@ export const Modules = {
   "mob-19": {
     module_name: "FREIGHT TRANSPORT",
     key: "mob-19",
-    module_icon_path: require("../../assets/Game_Icons/Express_Agent.png"),
+    module_icon_path: require("../../assets/Game_Icons/Freight_Transport.png"),
     module_status: "locked",
     module_state: "offline",
     module_source: "unity"
@@ -170,7 +170,7 @@ export const Modules = {
   "mob-20": {
     module_name: "LANGUAGE TEST",
     key: "mob-20",
-    module_icon_path: require("../../assets/Game_Icons/Express_Agent.png"),
+    module_icon_path: require("../../assets/Game_Icons/Language_Test.png"),
     module_status: "locked",
     module_state: "offline",
     module_source: "react"

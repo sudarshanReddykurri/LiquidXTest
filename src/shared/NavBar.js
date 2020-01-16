@@ -37,6 +37,9 @@ const NavBar = ({ classes, onLogOut }) => {
             {" "}
             PerspectAI{" "}
           </Typography>{" "}
+          <Button color="inherit" component={Link} to="/home">
+            Assessments
+          </Button>{" "}
           <Button color="inherit" component={Link} to="/about">
             About
           </Button>{" "}

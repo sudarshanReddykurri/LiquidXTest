@@ -37,6 +37,7 @@ const authService = {
     return new Promise((resolve, reject) => {
       localStorage.removeItem("userStore");
       localStorage.removeItem("id_token");
+      localStorage.removeItem("reset_game");
       resolve(true);
     })
       .catch(error => {

@@ -26,6 +26,7 @@ import AssessmentModules from "../containers/assessmentsModulesContainer/Assessm
 import NotFound from "../containers/NotFound";
 import AssessmentHomeContainer from "../containers/assessmentsContainer/AssessmentHomeContainer";
 import SetNewPasswordContainer from "../containers/authContainers/SetNewPasswordContainer";
+import ReactUnityBridge from "../containers/assessmentsModulesContainer/reactUnityBridge";
 //import { registerNav } from "../services/navigation";
 // Although the page does not ever refresh, notice how
 // React Router keeps the URL up to date as you navigate
@@ -77,6 +78,7 @@ const AppRoutes = forwardRef((props, ref) => {
         <PrivateRoute path="/home" component={AssessmentHomeContainer} />
         <PrivateRoute path="/about" component={AboutContainer} />
         <PrivateRoute path="/am" component={AssessmentModules} />
+        <PrivateRoute path="/game" component={ReactUnityBridge} />
 
         <Redirect from="/" exact to="/login" />
         <Route path="" component={NotFound} />

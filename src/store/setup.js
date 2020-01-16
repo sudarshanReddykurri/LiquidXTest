@@ -23,7 +23,8 @@ let user_initial_state = {
       logoUrl: "",
       game_play_order: [],
       games_to_play: [],
-      complete_games: []
+      complete_games: [],
+      current_game: ""
     }
   }
 };

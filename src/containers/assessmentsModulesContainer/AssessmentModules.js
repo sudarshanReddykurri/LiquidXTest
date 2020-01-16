@@ -29,6 +29,7 @@ import { inject, observer } from "mobx-react";
 import { withRouter } from "react-router-dom";
 import apiCall from "../../services/apiCalls/apiService";
 import CountDownCard from "../../components/CountDownCard";
+import GameCard from "../../components/GameCard";
 
 const screens = {
   LOADING: "loading_screen",
@@ -37,7 +38,7 @@ const screens = {
   DEACTIVATETIMER: "show_deactivate_timer_screen"
 };
 
-const GameData = Modules;
+// const GameData = Modules;
 let timerId;
 let game_play_order = [
   "mob-01",
@@ -57,7 +58,10 @@ let game_play_order = [
 let not_supported_games = ["mob-12", "mob-20"];
 
 let Game_Play = [];
+let game_to_unlock = "";
 
+const module_data = Modules;
+let history = "";
 class AssessmentModules extends Component {
   constructor(props) {
     super(props);
@@ -66,11 +70,55 @@ class AssessmentModules extends Component {
       open: false,
       currentScreenName: "loading_screen",
       activationTime: -1,
-      expiryTime: -1
+      expiryTime: -1,
+      final_module_data: []
     };
     this.onActivateAssessments = this.onActivateAssessments.bind(this);
+    console.log("history state before", this.props.history.location.state);
+    if (
+      this.props.history.location.state &&
+      this.props.history.location.state.from === "/game"
+    ) {
+      console.log("history state after", this.props.history.location.state);
+    }
+    console.log(
+      "TCL: AssessmentModules -> constructor -> localStorage.getItem('reset_game')",
+      localStorage.getItem("reset_game")
+    );
+
+
+    // let refresh_page = localStorage.getItem("reset_game");
+    // if (refresh_page === true) {
+    //   console.log(
+    //     "TCL: AssessmentModules -> constructor -> refresh_page",
+    //     refresh_page
+    //   );
+    //   localStorage.setItem("reset_game", false);
+    //   setTimeout(() => {
+    //     window.location.reload();
+    //   }, 10000);
+    // } else {
+    //   this.fetchAssessmentModules();
+    // }
     this.fetchAssessmentModules();
+
+
   }
+
+  // componentDidUpdate(prevProps) {
+  //   // will be true
+  //   const locationChanged =
+  //     this.props.location.state !== prevProps.location.state;
+  //     console.log("TCL: AssessmentModules -> componentDidUpdate -> prevProps.location", prevProps.location)
+  //     console.log("TCL: AssessmentModules -> componentDidUpdate -> this.props.location", this.props.location)
+
+  //     if(locationChanged)
+  //       window.location.reload();
+  //   // // INCORRECT, will *always* be false because history is mutable.
+  //   // const locationChanged =
+  //   //   this.props.history.location !== prevProps.history.location;
+  // }
+
   componentWillMount = () => {
     // Game_Play.length = 0;
     // game_play_order.map(game_key => {
@@ -105,21 +153,59 @@ class AssessmentModules extends Component {
             activation_time,
             end_date
           );
+          setTimeout(() => {
+            this.setModuleOrder();
+          }, 200);
         }
-        Game_Play.length = 0;
-
-        user.currentAssessment.getGamePlayOrder().map(game_key => {
-          Game_Play.push(GameData[game_key]);
-        });
-        console.log(
-          "TCL: AssessmentModules -> fetchAssessmentModules -> Game_Play.length",
-          Game_Play.length
-        );
-        this.moveToScreenBasedOnTimeValidation();
-        // this.setState({
-        //   currentScreenName: "show_modules_screen"
-        // });
       });
+  }
+
+  setModuleOrder() {
+    const { currentAssessment } = this.props.rootTree.user;
+    let temp_module_data = [];
+    // user played all the games check
+    if (
+      currentAssessment.game_play_order.length ==
+      currentAssessment.complete_games.length
+    ) {
+      game_to_unlock = "";
+    } else {
+      game_to_unlock = currentAssessment.games_to_play[0];
+    }
+    console.log(
+      "TCL: AssessmentModules -> setModuleOrder -> game_to_unlock",
+      game_to_unlock
+    );
+    currentAssessment.game_play_order.map(game_key => {
+      console.log(" module_data[game_key]" + game_key);
+      let complete_game_index_found = currentAssessment.complete_games.indexOf(
+        game_key
+      );
+      let games_to_unlock_index_found = -1;
+      if (game_to_unlock === game_key) {
+        games_to_unlock_index_found = 0;
+      } else {
+        games_to_unlock_index_found = -1;
+      }
+      if (complete_game_index_found != -1) {
+        module_data[game_key]["module_status"] = "completed";
+      } else if (games_to_unlock_index_found != -1) {
+        module_data[game_key]["module_status"] = "unlocked";
+      } else {
+        module_data[game_key]["module_status"] = "locked";
+      }
+      temp_module_data.push(module_data[game_key]);
+    });
+    //currentAssessment.update_games_to_play(temp_module_data);
+    this.state.final_module_data.length = 0;
+    this.setState({
+      final_module_data: this.state.final_module_data.concat(temp_module_data)
+    });
+    console.log(
+      "TCL: AssessmentModules -> setModuleOrder -> this.state.final_module_data",
+      this.state.final_module_data
+    );
+    this.moveToScreenBasedOnTimeValidation();
   }
 
   onUserLogout = () => {
@@ -134,10 +220,20 @@ class AssessmentModules extends Component {
 
   handleClickOpen(index) {
     console.log("index value : " + index);
-    this.setState({
-      gamenumber: index,
-      open: true
-    });
+    const { currentAssessment } = this.props.rootTree.user;
+    currentAssessment.update_current_game(
+      this.state.final_module_data[index]["key"]
+    );
+    console.log(
+      "TCL: AssessmentModules -> handleClickOpen -> this.state.final_module_data[index]['key']",
+      this.state.final_module_data[index]["key"]
+    );
+    this.props.history.push("/game");
+
+    // this.setState({
+    //   gamenumber: index,
+    //   open: true
+    // });
   }
 
   handleClose = () => {
@@ -146,7 +242,7 @@ class AssessmentModules extends Component {
     });
   };
 
-  onActivateAssessments(){
+  onActivateAssessments() {
     this.moveToScreenBasedOnTimeValidation();
   }
 
@@ -224,31 +320,22 @@ class AssessmentModules extends Component {
 
   showModules() {
     const { classes } = this.props;
+    //const { games_to_play } = this.props.rootTree.user.currentAssessment;
     return (
       <Grid container spacing={4}>
-        {Game_Play.map((Game, index) => (
+        {this.state.final_module_data.map((Game, index) => (
           <Grid item key={Game} xs={12} sm={6} md={4}>
-            <Card className={classes.card}>
-              <CardMedia
-                className={classes.cardMedia}
-                image={Game.module_icon_path}
-                title="Image title"
-              />
-              <CardContent className={classes.cardContent}>
-                <Typography gutterBottom variant="h5" component="h2">
-                  {Game.module_name}
-                </Typography>
-              </CardContent>
-              <CardActions style={{ justifyContent: "center" }}>
-                <Button
-                  size="small"
-                  color="primary"
-                  onClick={() => this.handleClickOpen(index)}
-                >
-                  Start Game
-                </Button>
-              </CardActions>
-            </Card>
+            <GameCard
+              key={index}
+              icon_path={Game.module_icon_path}
+              assessmentName={Game.module_name}
+              card_status={Game.module_status}
+              is_module_supported={
+                Game.module_source === "unity" ? true : false
+              }
+              // classes={classes}
+              onPress={() => this.handleClickOpen(index)}
+            ></GameCard>
           </Grid>
         ))}
       </Grid>
@@ -318,7 +405,7 @@ class AssessmentModules extends Component {
               {/* End hero unit */}
               {this.getScreen(this.state.currentScreenName)}
             </Container>
-            <Dialog
+            {/* <Dialog
               fullScreen
               open={this.state.open}
               onClose={this.handleClose}
@@ -326,7 +413,7 @@ class AssessmentModules extends Component {
             >
               <AppBar className={classes.appBar}>
                 <Toolbar>
-                  <Typography variant="h5" className={classes.title}>
+                  <Typography variant="h5" className={classes.logoTitle}>
                     PerspectAI
                   </Typography>
                   <Button color="inherit" onClick={this.handleClose}>
@@ -337,7 +424,7 @@ class AssessmentModules extends Component {
               <Container>
                 <ReactUnityBridge intValue={this.state.gamenumber} />
               </Container>
-            </Dialog>
+            </Dialog> */}
           </main>
         </React.Fragment>
       </div>
@@ -370,10 +457,13 @@ const styles = theme => ({
     flexDirection: "column"
   },
   cardMedia: {
-    paddingTop: "56.25%" // 16:9
+    height: "180px",
+    paddingTop: "10px" // 16:9
   },
   cardContent: {
-    flexGrow: 1
+    flexGrow: 1,
+    justifyContent: "center",
+    margin: "auto"
   },
   /*  footer: {
     backgroundColor: theme.palette.background.paper,
@@ -401,7 +491,7 @@ const styles = theme => ({
   toolbarTitle: {
     flexGrow: 1
   },
-  title: {
+  logoTitle: {
     marginLeft: theme.spacing(2),
     flex: 1
   },

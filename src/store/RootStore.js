@@ -29,7 +29,8 @@ export const CurrentAssessmentModel = types
     logoUrl: types.string,
     game_play_order: types.array(types.string),
     games_to_play: types.array(types.string),
-    complete_games: types.array(types.string)
+    complete_games: types.array(types.string),
+    current_game: types.string
   })
   .actions(self => {
     function update_current_assessment_info(
@@ -57,7 +58,6 @@ export const CurrentAssessmentModel = types
       activationTime,
       expiryTime
     ) {
-      console.log("TCL: functionupdate_games_to_play -> update_games_to_play");
       self.game_play_order.length = 0;
       self.games_to_play.length = 0;
       self.complete_games.length = 0;
@@ -68,6 +68,13 @@ export const CurrentAssessmentModel = types
         complete_games: complete_games,
         activationTime: activationTime,
         expiryTime: expiryTime
+      });
+    }
+
+    function update_current_game(current_game){
+      applySnapshot(self, {
+        ...self,
+        current_game: current_game
       });
     }
 
@@ -96,6 +103,7 @@ export const CurrentAssessmentModel = types
     }
 
     function update_games_to_play(games_to_play) {
+      //self.games_to_play.length = 0;
       console.log("TCL: functionupdate_games_to_play -> update_games_to_play");
       applySnapshot(self, {
         ...self,
@@ -114,6 +122,7 @@ export const CurrentAssessmentModel = types
     }
     return {
       setup_games,
+      update_current_game,
       update_activation_time,
       update_expiry_time,
       update_current_assessment_info,
@@ -158,7 +167,8 @@ const UserModel = types
       logoUrl: "",
       game_play_order: [],
       games_to_play: [],
-      complete_games: []
+      complete_games: [],
+      current_game: ""
     })
   })
   .actions(self => {
