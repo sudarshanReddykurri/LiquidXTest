@@ -178,7 +178,7 @@ export const Modules = {
   "mob-21": {
     module_name: "CODE TEST",
     key: "mob-21",
-    module_icon_path: require("../../assets/Game_Icons/Express_Agent.png"),
+    module_icon_path: require("../../assets/Game_Icons/Code_Test.png"),
     module_status: "locked",
     module_state: "offline",
     module_source: "unity"

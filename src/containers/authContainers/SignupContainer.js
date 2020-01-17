@@ -26,11 +26,15 @@ import {
   KeyboardDatePicker
 } from "@material-ui/pickers";
 import { Link } from "react-router-dom";
+import { inject, observer } from "mobx-react";
 import StickyFooter from "../../shared/StickyFooter";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import moment from "moment";
 import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
+import apiCall from "../../services/apiCalls/apiService";
+import authService from "../../services/auth/authService";
+import { withRouter } from "react-router-dom";
 
 const styles = theme => ({
   paper: {
@@ -95,9 +99,7 @@ const validationSchema = Yup.object().shape({
     .test("dateofbirth", "You must be above 18  to signup", value => {
       return moment().diff(moment(value), "years") >= 18;
     }),
-  gender: Yup.string()
-    .required("Gender is a required field")
-
+  gender: Yup.string().required("Gender is a required field")
 });
 
 class SignupContainer extends Component {
@@ -105,17 +107,20 @@ class SignupContainer extends Component {
     super(props);
     this.state = {
       selectedDate: null,
-      selectedGender: null
+      selectedGender: "male"
     };
   }
 
   handleDateChange = date => {
+    console.log("TCL: SignupContainer -> date", date);
+    console.log("TCL: modified eventValue", moment(date).format("YYYY-MM-DD"));
     this.setState({
       selectedDate: date
     });
   };
 
   handleGenderChange = eventValue => {
+    console.log("TCL: eventValue", eventValue);
     this.setState({
       selectedGender: eventValue
     });
@@ -148,19 +153,70 @@ class SignupContainer extends Component {
                   password: "",
                   confirmPassword: "",
                   dateOfBirth: "",
-                  gender: ""
+                  gender: "male"
                 }}
                 validationSchema={validationSchema}
                 onSubmit={(values, actions) => {
+                  let payload = {
+                    firstName: values.firstName,
+                    lastName: values.lastName,
+                    email_id: values.email,
+                    gender: values.gender,
+                    mobile: values.mobileNumber,
+                    passwd: values.confirmPassword,
+                    dob: moment(values.dateOfBirth).format("YYYY-MM-DD"),
+                    Version: "2.01.01",
+                    key: values.licenseKey
+                  };
                   actions.setFieldTouched("firstName");
                   actions.setFieldTouched("lastName");
                   actions.setFieldTouched("email");
                   actions.setFieldTouched("mobileNumber");
+                  actions.setFieldTouched("licenseKey");
                   actions.setFieldTouched("password");
                   actions.setFieldTouched("confirmPassword");
                   actions.setFieldTouched("dateOfBirth");
                   actions.setFieldTouched("gender");
                   actions.setSubmitting(true);
+                  let license_data_payload = {
+                    email_id: values.email,
+                    key: values.licenseKey
+                  };
+                  apiCall
+                    .licenceVerify(license_data_payload)
+                    .then(res => {
+                      console.log("TCL: App -> componentDidMount -> rsp", res);
+                      if (res.status === 200) {
+                        apiCall
+                          .userSignUp(payload)
+                          .then(res => {
+                            console.log(
+                              "TCL: App -> componentDidMount -> rsp",
+                              res
+                            );
+                            actions.setSubmitting(false);
+                            if (res.status === 200) {
+                              this.props.history.push("/login");
+                            } else {
+                              console.log("Error in user signup", res);
+                            }
+                          })
+                          .catch(err => {
+                            console.log(
+                              "TCL: App -> componentDidMount -> err",
+                              err
+                            );
+                            actions.setSubmitting(false);
+                          });
+                      } else {
+                        console.log("Licence Verify Error", res);
+                        actions.setSubmitting(false);
+                      }
+                    })
+                    .catch(err => {
+                      console.log("TCL: App -> componentDidMount -> err", err);
+                      actions.setSubmitting(false);
+                    });
                 }}
                 render={formikProps => (
                   <React.Fragment>
@@ -318,6 +374,7 @@ class SignupContainer extends Component {
                         <MuiPickersUtilsProvider utils={DateFnsUtils}>
                           {/* <Grid container justify="space-around"> */}
                           <KeyboardDatePicker
+                            name="BeginDate_1"
                             required
                             fullWidth
                             margin="normal"
@@ -362,12 +419,14 @@ class SignupContainer extends Component {
                           aria-label="gender"
                           name="gender"
                           value={this.state.selectedGender}
-                          onChange={
-                            event => {
-                              // this.togglePicker(false);
-                              this.handleDateChange(event.target.value);
-                              formikProps.setFieldValue("gender", event.target.value);
-                            }}
+                          onChange={event => {
+                            // this.togglePicker(false);
+                            this.handleGenderChange(event.target.value);
+                            formikProps.setFieldValue(
+                              "gender",
+                              event.target.value
+                            );
+                          }}
                           touched={
                             formikProps.touched.gender
                               ? formikProps.errors.gender
@@ -379,15 +438,15 @@ class SignupContainer extends Component {
                           }
                         >
                           <FormControlLabel
-                            value="female"
-                            control={<Radio color="primary" />}
-                            label="Female"
-                            labelPlacement="end"
-                          />
-                          <FormControlLabel
                             value="male"
                             control={<Radio color="primary" />}
                             label="Male"
+                            labelPlacement="end"
+                          />
+                          <FormControlLabel
+                            value="female"
+                            control={<Radio color="primary" />}
+                            label="Female"
                             labelPlacement="end"
                           />
                           <FormControlLabel
@@ -435,4 +494,6 @@ class SignupContainer extends Component {
   }
 }
 
-export default withStyles(styles)(SignupContainer);
+export default withRouter(
+  withStyles(styles)(inject("rootTree")(observer(SignupContainer)))
+);

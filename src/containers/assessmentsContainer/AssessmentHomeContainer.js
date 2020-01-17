@@ -17,14 +17,14 @@ import apiCall from "../../services/apiCalls/apiService";
 import authService from "../../services/auth/authService";
 import { withRouter } from "react-router-dom";
 
-
 class AssessmentHomeContainer extends Component {
   constructor(props) {
     super(props);
     this.state = {
       assessmentsList: [],
       isLoading: true,
-      isFetchingAssessment: false
+      isFetchingAssessment: false,
+      totalAssessments: 0
     };
     console.log("AssessmentHomeContainer");
     this.fetchAssessments();
@@ -48,7 +48,9 @@ class AssessmentHomeContainer extends Component {
 
         if (res.status == 200) {
           rootTree.user.clearAllAssessments();
-
+          this.setState({
+            totalAssessments: res.data.assessmnets.length
+          });
           res.data.assessmnets.map((assessment, index) => {
             console.log(
               "TCL: AssessmentHomeContainer -> fetchAssessments -> assessment",
@@ -86,7 +88,14 @@ class AssessmentHomeContainer extends Component {
     //     console.log("isFetchingAssessment");
     //   }
     // );
-     const { id, assessmentId, assessmentName, companyName, expiryTime, logoUrl } = assessment;
+    const {
+      id,
+      assessmentId,
+      assessmentName,
+      companyName,
+      expiryTime,
+      logoUrl
+    } = assessment;
     rootTree.user.currentAssessment.update_current_assessment_info(
       assessmentId,
       assessmentName,
@@ -152,7 +161,14 @@ class AssessmentHomeContainer extends Component {
                 </Box>
               </Typography>
               <br />
-              <Grid container spacing={24} justify="left" direction="row">
+              <Grid
+                container
+                spacing={24}
+                justify={
+                  this.state.totalAssessments < 2 ? "center" : "flex-start"
+                }
+                direction="row"
+              >
                 {rootTree.user.getAssessments().map((assessment, index) => {
                   return (
                     <Grid item key={index} xs={12} sm={6} md={4}>

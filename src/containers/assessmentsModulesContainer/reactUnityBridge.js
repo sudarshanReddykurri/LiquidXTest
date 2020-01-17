@@ -29,7 +29,7 @@ import Modal from "react-bootstrap/Modal";
 import { CircleToBlockLoading } from "react-loadingg";
 import { inject, observer } from "mobx-react";
 import { withRouter } from "react-router-dom";
-
+import "./reactUnityStyles.css";
 let game_index = "";
 class ReactUnityBridge extends Component {
   constructor(props) {
@@ -51,15 +51,15 @@ class ReactUnityBridge extends Component {
       // remove all but first history entry
       // history.length = history.length-1;
 
-      setTimeout(() => {
-        localStorage.setItem("reset_game", true);
-        this.props.history.push({
-          pathname: "/am",
-          state: {
-            from: this.props.location.pathname
-          }
-        });
-      }, 10000);
+      // setTimeout(() => {
+      //   localStorage.setItem("reset_game", true);
+      //   this.props.history.push({
+      //     pathname: "/am",
+      //     state: {
+      //       from: this.props.location.pathname
+      //     }
+      //   });
+      // }, 10000);
 
       this.unityContent = new UnityContent(
         GameConfigModules[game_index].jsonPath,
@@ -132,8 +132,20 @@ class ReactUnityBridge extends Component {
   render() {
     return (
       <div className="App">
-        {/* <div>{`Loading ${this.state.progression * 100} percent...`}</div> */}
-        <Unity unityContent={this.unityContent} />
+        <div
+          //className="gameContainer"
+          style={{
+            backgroundColor: '#fff'
+          }}
+        >
+          <Unity
+            unityContent={this.unityContent}
+            width="100%"
+            height="100%"
+            ref={ref => (this.unityRef = ref)}
+          />
+        </div>
+        {/* <Unity unityContent={this.unityContent} /> */}
         <Dialog
           fullScreen
           open={this.state.openLoading}

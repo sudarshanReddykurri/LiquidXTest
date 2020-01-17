@@ -45,12 +45,14 @@ const apiCall = {
     });
   },
   afterOTPUpdateResetPassword(payload) {
+    console.log("TCL: afterOTPUpdateResetPassword -> payload", payload)
     // { email_id: email_id, otp: otp, passwd: values.confirmpassword };
-    return apiClient.put("/login/passwd", payload, {
+    return apiClient.put("/login/passwd/", payload, {
       headers: this.getHeaders()
     });
   },
   licenceVerify(payload) {
+    console.log("TCL: licenceVerify -> payload", payload)
     // { email_id: User_EmailID, key: values.licensekey };
     return apiClient.put("/users/licence/", payload, {
       headers: this.getHeaders()

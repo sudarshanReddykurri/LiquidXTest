@@ -21,7 +21,8 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
 import apiCall from "../../services/apiCalls/apiService";
-import jumpTo from "../../services/navigation";
+// import jumpTo from "../../services/navigation";
+import { withRouter } from "react-router-dom";
 
 const styles = theme => ({
   paper: {
@@ -86,7 +87,8 @@ class ForgotPasswordContainer extends Component {
           <br />
           <Typography variant="subtitle">
             Forgot your account’s password or having trouble logging into your
-            Account? Enter your email address and we’ll send you the recovery code.
+            Account? Enter your email address and we’ll send you the recovery
+            code.
           </Typography>
           <form className={classes.form} noValidate>
             <Formik
@@ -101,8 +103,14 @@ class ForgotPasswordContainer extends Component {
                   .then(res => {
                     console.log("TCL: App -> componentDidMount -> rsp", res);
                     actions.setSubmitting(false);
-                    if (res.status == 200) {
-                      jumpTo(`/otpverify/${data.email_id}`);
+                    if (res.status === 200) {
+                      this.props.history.push({
+                        pathname: `/otpverify/${data.email_id}`,
+                        state: {
+                          from: this.props.location.pathname
+                        }
+                      });
+                      //jumpTo(`/otpverify/${data.email_id}`);
                     }
                   })
                   .catch(err => {
@@ -154,4 +162,4 @@ class ForgotPasswordContainer extends Component {
   }
 }
 
-export default withStyles(styles)(ForgotPasswordContainer);
+export default withRouter(withStyles(styles)(ForgotPasswordContainer));

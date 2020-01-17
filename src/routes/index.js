@@ -72,7 +72,7 @@ const AppRoutes = forwardRef((props, ref) => {
         />
         <NoAuthRoute
           exact
-          path="/updatePassword"
+          path="/updatePassword/:emailId/:otp"
           component={SetNewPasswordContainer}
         />
         <PrivateRoute path="/home" component={AssessmentHomeContainer} />

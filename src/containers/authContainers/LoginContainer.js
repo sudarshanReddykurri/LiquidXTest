@@ -25,8 +25,17 @@ import apiCall from "../../services/apiCalls/apiService";
 import authService from "../../services/auth/authService";
 //import jumpTo from "../../services/navigation";
 // or we can use withRouter higher order component from react-router-dom
-import { withRouter } from 'react-router-dom';
+import { withRouter } from "react-router-dom";
+import AlertDialog from "../../components/AlertDialog";
+// import "../../styles.css";
 // This will give history prop which we can use to navigate
+
+// in ms
+const ALERT_TIMEOUTS = {
+  error: 4000,
+  success: 3000,
+  info: 3000
+};
 
 const styles = theme => ({
   paper: {
@@ -84,9 +93,11 @@ class LoginContainer extends Component {
   constructor(props) {
     super(props);
     this.state = {};
+    this.alertRef = null;
   }
 
   async componentDidMount() {
+    this.alertRef.handleOpenDialog("Error","Not Found Not found not found not found not found");
     // const { UserStore } = this.props;
     // console.log("UserStore", UserStore);
   }
@@ -96,10 +107,8 @@ class LoginContainer extends Component {
     const { classes, rootTree } = this.props;
     if (!rootTree) return null;
 
-    const fromLocation = this.props.location;
-    console.log("TCL: LoginContainer -> render -> fromLocation", this.props.location)
     // if (fromLocation.state && fromLocation.state.nextPathname) {
-  
+
     // }
     // let { from } = this.props.location.state || { from: { pathname: "/" } };
     // console.log(from);
@@ -108,6 +117,12 @@ class LoginContainer extends Component {
     return (
       <Container component="main" maxWidth="xs">
         <CssBaseline />
+        <AlertDialog
+          
+          ref={alertRef => {
+            this.alertRef = alertRef;
+          }}
+        />
         {/* <p>{rootTree.user.companyName}</p> */}
         <div>
           <img
@@ -162,7 +177,7 @@ class LoginContainer extends Component {
                     );
 
                     authService.setToken(userData.auth_token);
-                    this.props.history.push("/home")
+                    this.props.history.push("/home");
                     //jumpTo("/home");
                   }
                 })
@@ -257,4 +272,6 @@ class LoginContainer extends Component {
 /* this is how you use the HeroStore by
     injecting it to your component. 
     The Store can be found in the Provider */
-export default withRouter(withStyles(styles)(inject("rootTree")(observer(LoginContainer))));
+export default withRouter(
+  withStyles(styles)(inject("rootTree")(observer(LoginContainer)))
+);

@@ -21,7 +21,10 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
 import apiCall from "../../services/apiCalls/apiService";
-import jumpTo from "../../services/navigation";
+import authService from "../../services/auth/authService";
+// import jumpTo from "../../services/navigation";
+import { inject, observer } from "mobx-react";
+import { withRouter } from "react-router-dom";
 
 const styles = theme => ({
   paper: {
@@ -66,6 +69,19 @@ const validationSchema = Yup.object({
     })
 });
 
+let data = {
+  device_id: "web",
+  device_model: "web",
+  screen_size: "120*240",
+  ram: "web",
+  login_id: "",
+  passwd: "",
+  os_version: "web",
+  screen_dpi: "web",
+  version: "2.01.10",
+  fcm_token: ""
+};
+
 class SetNewPasswordContainer extends Component {
   constructor(props) {
     super(props);
@@ -97,10 +113,71 @@ class SetNewPasswordContainer extends Component {
               initialValues={{ password: "", confirmPassword: "" }}
               validationSchema={validationSchema}
               onSubmit={(values, actions) => {
-                // let data = { email_id: values.email.toLowerCase().trim() };
+                console.log("values",values);
+                let payload = {
+                  email_id: this.props.match.params.emailId,
+                  otp: this.props.match.params.otp,
+                  passwd: values.confirmPassword
+                };
                 actions.setFieldTouched("password");
                 actions.setFieldTouched("confirmPassword");
                 actions.setSubmitting(true);
+                apiCall
+                  .afterOTPUpdateResetPassword(payload)
+                  .then(res => {
+                    console.log("TCL: App -> componentDidMount -> rsp", res);
+                    actions.setSubmitting(false);
+                    if (res.status === 200) {
+                      data.login_id = this.props.match.params.emailId;
+                      data.passwd = values.password;
+                      apiCall
+                        .userLogin(data)
+                        .then(response => {
+                          console.log(
+                            "TCL: App -> componentDidMount -> rsp",
+                            response
+                          );
+                          actions.setSubmitting(false);
+                          if (response.status == 200) {
+                            const { rootTree } = this.props;
+                            if (!rootTree) return null;
+                            let userData = response.data.data;
+                            console.log(
+                              "TCL: LoginContainer -> render -> userData",
+                              userData
+                            );
+
+                            rootTree.user.updateUser(
+                              userData.userId,
+                              userData.fullName,
+                              userData.emailId,
+                              userData.gender,
+                              parseInt(userData.mobileNo),
+                              userData.DOB,
+                              userData.registrationImages,
+                              userData.auth_token,
+                              userData.acc_lvl
+                            );
+
+                            authService.setToken(userData.auth_token);
+                            this.props.history.push("/home");
+                            //jumpTo("/home");
+                          }
+                        })
+                        .catch(err => {
+                          console.log(
+                            "TCL: App -> componentDidMount -> err",
+                            err
+                          );
+                        });
+                      //jumpTo("/otpverify");
+                    }
+                  })
+                  .catch(err => {
+                    console.log("TCL: App -> componentDidMount -> err", err);
+                    actions.setSubmitting(false);
+                  });
+
                 // apiCall
                 //   .forgotPassword(data)
                 //   .then(res => {
@@ -137,8 +214,8 @@ class SetNewPasswordContainer extends Component {
                     }
                     onChange={formikProps.handleChange("password")}
                   />
-                  <br/>
-                  <br/>
+                  <br />
+                  <br />
                   <TextField
                     variant="outlined"
                     required
@@ -182,4 +259,6 @@ class SetNewPasswordContainer extends Component {
   }
 }
 
-export default withStyles(styles)(SetNewPasswordContainer);
+export default withRouter(
+  withStyles(styles)(inject("rootTree")(observer(SetNewPasswordContainer)))
+);
