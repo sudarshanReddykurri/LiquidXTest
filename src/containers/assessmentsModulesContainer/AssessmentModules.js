@@ -146,6 +146,7 @@ class AssessmentModules extends Component {
             activation_time,
             end_date
           } = res.data;
+          user.currentAssessment.clear_games();
           user.currentAssessment.setup_games(
             game_play_order,
             games_to_play,

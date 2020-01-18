@@ -29,6 +29,7 @@ import Modal from "react-bootstrap/Modal";
 import { CircleToBlockLoading } from "react-loadingg";
 import { inject, observer } from "mobx-react";
 import { withRouter } from "react-router-dom";
+import apiCall from "../../services/apiCalls/apiService";
 import "./reactUnityStyles.css";
 let game_index = "";
 class ReactUnityBridge extends Component {
@@ -39,69 +40,79 @@ class ReactUnityBridge extends Component {
     };
     const { user } = this.props.rootTree;
     game_index = user.currentAssessment.current_game;
+    //game_index = "mob-07";
     if (game_index != "") {
-      //   this.setState({
-      //     showUnity: false
-      //   });
-      // this.props.history.goBack();
-      // this.props.history.replace();
-      // const history = this.props.history.entries;
-      // set first entry in history to mirror the last entry
-      // history.length = history[history.length - 1];
-      // remove all but first history entry
-      // history.length = history.length-1;
-
-      // setTimeout(() => {
-      //   localStorage.setItem("reset_game", true);
-      //   this.props.history.push({
-      //     pathname: "/am",
-      //     state: {
-      //       from: this.props.location.pathname
-      //     }
-      //   });
-      // }, 10000);
-
       this.unityContent = new UnityContent(
         GameConfigModules[game_index].jsonPath,
         GameConfigModules[game_index].unityLoaderPath
-        //"GameBuilds/tsmBuild/Build/UnityLoader.js"
       );
       this.state = {
         progression: 0,
         openLoading: true
       };
-      console.log(
-        "TCL: ReactUnityBridge -> constructor -> GameConfigModules[game_index].jsonPath",
-        GameConfigModules[game_index].jsonPath
-      );
-      console.log(
-        "TCL: ReactUnityBridge -> constructor -> GameConfigModules[game_index].unityLoaderPath",
-        GameConfigModules[game_index].unityLoaderPath
-      );
-
-      // const [openadialogue, setOpen] = React.useState(true);
 
       this.unityContent.on("sendDataToNativeJS", jsonData => {
-        console.log("Data From Unity");
-        let parsedData = JSON.parse(jsonData);
-        console.log(parsedData.data_label);
-        console.log(parsedData.json_data.playerid);
-        
+        // console.log("Data From Unity");
+        let dataFromUnity = JSON.parse(jsonData);
+        console.log(
+          "TCL: ReactUnityBridge -> constructor -> parsedData",
+          dataFromUnity
+        );
 
-        // {"data_label":"pausedata","json_data":"{\"playerid\":\"TestPlayer\",\"game\":\"\",\"pausenumber\":\"1\",\"pausetime\":\"1579335096242\",\"resumetime\":\"1579335101423\"}","time_stamp":""}
+        if (dataFromUnity.data_label === "cameradata") {
+          let parsedJsonDataUnity = JSON.parse(dataFromUnity.json_data);
+          let cameraData = {
+            playerid: user.userId,
+            game_name: game_index,
+            timestamp: dataFromUnity.time_stamp,
+            encoded_image: parsedJsonDataUnity.ImageData
+          };
+          apiCall
+            .imageDataUpload(JSON.stringify(cameraData))
+            .then(res => {
+              console.log("TCL: App -> componentDidMount -> rsp", res);
+              if (res.status === 200) {
+                console.log("camera data successfully uploaded");
+              }
+            })
+            .catch(err => {
+              console.log("TCL: App -> componentDidMount -> err", err);
+              console.log(err.response);
+              // const { status, data } = err.response;
+            });
+        } else if (
+          dataFromUnity.data_label === "gamedata" ||
+          dataFromUnity.data_label === "pausedata"
+        ) {
+          let gameData = {
+            name: game_index,
+            data: dataFromUnity.json_data
+          };
+          apiCall
+            .gameDataUpload(JSON.stringify(gameData))
+            .then(res => {
+              if (res.status === 200) {
+                console.log("game or pause data successfully uploaded");
+              }
+            })
+            .catch(err => {
+              console.log("TCL: App -> componentDidMount -> err", err);
+              console.log(err.response);
+            });
+        } else if (dataFromUnity.data_label === "quit") {
+          // Called when back or home is pressed in the game
+          user.currentAssessment.update_current_game("");
+          this.props.history.goBack();
+        } else if (dataFromUnity.data_label === "next") {
+          // Called when proceed button is pressed in the game
 
+          user.currentAssessment.add_to_complete_games(game_index);
+          user.currentAssessment.remove_from_games_to_play(game_index);
+          user.currentAssessment.update_current_game("");
+          this.props.history.goBack();
+        }
       });
 
-      this.unityContent.on("gameCompletedNotify", message => {
-        console.log("gameCompletedNotify From Unity");
-      });
-
-      this.unityContent.on("progress", progression => {
-        console.log("Unity progress", progression);
-      });
-      this.unityContent.on("sendCameraDataToNativeJs", ImageDataJson => {
-        console.log("Unity Camera Data: " + ImageDataJson);
-      });
       this.unityContent.on("loaded", () => {
         this.setState({ openLoading: false });
         //setOpen(false);
@@ -121,9 +132,11 @@ class ReactUnityBridge extends Component {
           console.log("resolution unity canvas not found");
         }
 
-        this.unityContent.send(GameConfigModules[game_index].gameObjectToCall, "setPlayerID", user.userId);
-        console.log("TCL: ReactUnityBridge -> constructor -> user.userId", user.userId)
-        console.log("TCL: ReactUnityBridge -> constructor -> GameConfigModules[game_index].gameObjectToCall", GameConfigModules[game_index].gameObjectToCall)
+        this.unityContent.send(
+          GameConfigModules[game_index].gameObjectToCall,
+          "setPlayerID",
+          user.userId
+        );
       });
       this.unityContent.on("progress", progression => {
         // Now we can use the progression to for example
@@ -143,7 +156,7 @@ class ReactUnityBridge extends Component {
         <div
           //className="gameContainer"
           style={{
-            backgroundColor: '#fff'
+            backgroundColor: "#fff"
           }}
         >
           <Unity

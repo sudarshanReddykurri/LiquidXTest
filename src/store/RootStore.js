@@ -58,9 +58,9 @@ export const CurrentAssessmentModel = types
       activationTime,
       expiryTime
     ) {
-      self.game_play_order.length = 0;
-      self.games_to_play.length = 0;
-      self.complete_games.length = 0;
+      // self.game_play_order.length = 0;
+      // self.games_to_play.length = 0;
+      // self.complete_games.length = 0;
       applySnapshot(self, {
         ...self,
         game_play_order: game_play_order,
@@ -71,7 +71,18 @@ export const CurrentAssessmentModel = types
       });
     }
 
-    function update_current_game(current_game){
+    function clear_games() {
+      applySnapshot(self, {
+        ...self,
+        game_play_order: [],
+        games_to_play: [],
+        complete_games: [],
+        activationTime: -1,
+        expiryTime: -1
+      });
+    }
+
+    function update_current_game(current_game) {
       applySnapshot(self, {
         ...self,
         current_game: current_game
@@ -102,33 +113,40 @@ export const CurrentAssessmentModel = types
       });
     }
 
-    function update_games_to_play(games_to_play) {
-      //self.games_to_play.length = 0;
+    function remove_from_games_to_play(game_name) {
+      // self.games_to_play.length = 0;
       console.log("TCL: functionupdate_games_to_play -> update_games_to_play");
+
+      var temp_place_holder = self.games_to_play; // make a separate copy of the array
+      var index = temp_place_holder.indexOf(game_name);
+      if (index !== -1) {
+        temp_place_holder.splice(index, 1);
+      }
       applySnapshot(self, {
         ...self,
-        games_to_play: games_to_play
+        games_to_play: temp_place_holder
       });
     }
 
-    function update_complete_games(complete_games) {
+    function add_to_complete_games(game_name) {
       console.log(
         "TCL: functionupdate_complete_games -> update_complete_games"
       );
       applySnapshot(self, {
         ...self,
-        complete_games: complete_games
+        complete_games: [...self.complete_games, game_name]
       });
     }
     return {
       setup_games,
+      clear_games,
       update_current_game,
       update_activation_time,
       update_expiry_time,
       update_current_assessment_info,
-      update_games_to_play,
+      remove_from_games_to_play,
       update_game_play_order,
-      update_complete_games
+      add_to_complete_games
     };
   })
   .views(self => {

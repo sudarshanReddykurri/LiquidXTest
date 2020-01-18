@@ -99,14 +99,16 @@ const apiCall = {
   },
 
   gameDataUpload(payload){
-    // [{ name: res[sync_game_current_index]["game_name"], data: res[sync_game_current_index]["unity_data"] }]
+    console.log("TCL: gameDataUpload -> payload", payload)
+    // { name: res[sync_game_current_index]["game_name"], data: res[sync_game_current_index]["unity_data"] }
     return apiClient.post("/game/", payload, {
       headers: this.getHeaders()
     });
   },
 
   imageDataUpload(payload) {
-    // [{  playerid: player_id, game_name: res[sync_image_current_index]["game_name"], timestamp: res[sync_image_current_index]["timestamp"],encoded_image: res[sync_image_current_index]["unity_data"] }]
+    console.log("TCL: imageDataUpload -> payload", payload)
+    // {  playerid: player_id, game_name: res[sync_image_current_index]["game_name"], timestamp: res[sync_image_current_index]["timestamp"],encoded_image: res[sync_image_current_index]["unity_data"] }
     return apiClient.post("/images/", payload, {
       headers: this.getHeaders()
     });
@@ -140,7 +142,7 @@ const apiCall = {
     return {
       //"Accept": "application/json",
       "Content-Type": "application/json"
-      //"Access-Control-Allow-Origin": "*",
+      // "Access-Control-Allow-Origin": "*",
       // "Access-Control-Allow-Headers": "Content-Type"
       //   'uid': Auth.uid,
       //   'client': Auth.client,
