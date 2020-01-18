@@ -23,6 +23,7 @@ import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
 import apiCall from "../../services/apiCalls/apiService";
 // import jumpTo from "../../services/navigation";
 import { withRouter } from "react-router-dom";
+import AlertDialog from "../../components/AlertDialog";
 
 const styles = theme => ({
   paper: {
@@ -74,6 +75,11 @@ class ForgotPasswordContainer extends Component {
     return (
       <Container component="main" maxWidth="xs">
         <CssBaseline />
+        <AlertDialog
+          ref={alertRef => {
+            this.alertRef = alertRef;
+          }}
+        />
         <div className={classes.paper}>
           <img
             src={perspectAILogo}
@@ -115,6 +121,12 @@ class ForgotPasswordContainer extends Component {
                   })
                   .catch(err => {
                     console.log("TCL: App -> componentDidMount -> err", err);
+                    console.log(err.response);
+                    const { status, data } = err.response;
+                    this.alertRef.handleOpenDialog(
+                      `Failed processing request`,
+                      data.message
+                    );
                     actions.setSubmitting(false);
                   });
               }}

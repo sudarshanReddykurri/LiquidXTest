@@ -24,6 +24,7 @@ import * as Yup from "yup";
 import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
 import apiCall from "../../services/apiCalls/apiService";
 import { withRouter } from "react-router-dom";
+import AlertDialog from "../../components/AlertDialog";
 
 const styles = theme => ({
   paper: {
@@ -88,6 +89,11 @@ class OTPVerifyContainer extends Component {
     return (
       <Container component="main" maxWidth="xs">
         <CssBaseline />
+        <AlertDialog
+          ref={alertRef => {
+            this.alertRef = alertRef;
+          }}
+        />
         <div className={classes.paper}>
           {/* <Avatar
         alt="PerspectAI Logo"
@@ -145,6 +151,12 @@ class OTPVerifyContainer extends Component {
                         console.log(
                           "TCL: App -> componentDidMount -> err",
                           err
+                        );
+                        console.log(err.response);
+                        const { status, data } = err.response;
+                        this.alertRef.handleOpenDialog(
+                          `Failed processing request`,
+                          data.message
                         );
                         actions.setSubmitting(false);
                       });

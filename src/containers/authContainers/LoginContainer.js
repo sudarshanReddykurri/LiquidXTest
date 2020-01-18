@@ -30,13 +30,6 @@ import AlertDialog from "../../components/AlertDialog";
 // import "../../styles.css";
 // This will give history prop which we can use to navigate
 
-// in ms
-const ALERT_TIMEOUTS = {
-  error: 4000,
-  success: 3000,
-  info: 3000
-};
-
 const styles = theme => ({
   paper: {
     marginTop: theme.spacing(8),
@@ -97,7 +90,7 @@ class LoginContainer extends Component {
   }
 
   async componentDidMount() {
-    this.alertRef.handleOpenDialog("Error","Not Found Not found not found not found not found");
+    // this.alertRef.handleOpenDialog("Error","Not Found Not found not found not found not found");
     // const { UserStore } = this.props;
     // console.log("UserStore", UserStore);
   }
@@ -183,6 +176,9 @@ class LoginContainer extends Component {
                 })
                 .catch(err => {
                   console.log("TCL: App -> componentDidMount -> err", err);
+                  console.log(err.response);
+                  const { status, data} = err.response;
+                  this.alertRef.handleOpenDialog(`Authentication Failed`,data.message);
                   actions.setSubmitting(false);
                 });
             }}

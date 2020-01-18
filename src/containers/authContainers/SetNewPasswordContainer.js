@@ -25,6 +25,7 @@ import authService from "../../services/auth/authService";
 // import jumpTo from "../../services/navigation";
 import { inject, observer } from "mobx-react";
 import { withRouter } from "react-router-dom";
+import AlertDialog from "../../components/AlertDialog";
 
 const styles = theme => ({
   paper: {
@@ -94,6 +95,11 @@ class SetNewPasswordContainer extends Component {
     return (
       <Container component="main" maxWidth="xs">
         <CssBaseline />
+        <AlertDialog
+          ref={alertRef => {
+            this.alertRef = alertRef;
+          }}
+        />
         <div className={classes.paper}>
           <img
             src={perspectAILogo}
@@ -113,7 +119,7 @@ class SetNewPasswordContainer extends Component {
               initialValues={{ password: "", confirmPassword: "" }}
               validationSchema={validationSchema}
               onSubmit={(values, actions) => {
-                console.log("values",values);
+                console.log("values", values);
                 let payload = {
                   email_id: this.props.match.params.emailId,
                   otp: this.props.match.params.otp,
@@ -137,7 +143,7 @@ class SetNewPasswordContainer extends Component {
                             "TCL: App -> componentDidMount -> rsp",
                             response
                           );
-                          actions.setSubmitting(false);
+                          // actions.setSubmitting(false);
                           if (response.status == 200) {
                             const { rootTree } = this.props;
                             if (!rootTree) return null;
@@ -169,12 +175,25 @@ class SetNewPasswordContainer extends Component {
                             "TCL: App -> componentDidMount -> err",
                             err
                           );
+                          console.log(err.response);
+                          const { status, data } = err.response;
+                          this.alertRef.handleOpenDialog(
+                            `Failed processing request`,
+                            data.message
+                          );
+                          actions.setSubmitting(false);
                         });
                       //jumpTo("/otpverify");
                     }
                   })
                   .catch(err => {
                     console.log("TCL: App -> componentDidMount -> err", err);
+                    console.log(err.response);
+                    const { status, data } = err.response;
+                    this.alertRef.handleOpenDialog(
+                      `Failed processing request`,
+                      data.message
+                    );
                     actions.setSubmitting(false);
                   });
 

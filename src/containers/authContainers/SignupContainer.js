@@ -35,6 +35,7 @@ import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
 import apiCall from "../../services/apiCalls/apiService";
 import authService from "../../services/auth/authService";
 import { withRouter } from "react-router-dom";
+import AlertDialog from "../../components/AlertDialog";
 
 const styles = theme => ({
   paper: {
@@ -64,7 +65,10 @@ const styles = theme => ({
   },
   submit: {
     margin: theme.spacing(3, 0, 2)
-  }
+  },
+  processText: {
+    color: '#2196f3',
+  },
 });
 
 const validationSchema = Yup.object().shape({
@@ -133,6 +137,11 @@ class SignupContainer extends Component {
       <div>
         <Container component="main" maxWidth="xs">
           <CssBaseline />
+          <AlertDialog
+            ref={alertRef => {
+              this.alertRef = alertRef;
+            }}
+          />
           <div className={classes.paper}>
             <img
               src={perspectAILogo}
@@ -194,11 +203,70 @@ class SignupContainer extends Component {
                               "TCL: App -> componentDidMount -> rsp",
                               res
                             );
-                            actions.setSubmitting(false);
+                            // actions.setSubmitting(false);
                             if (res.status === 200) {
-                              this.props.history.push("/login");
-                            } else {
-                              console.log("Error in user signup", res);
+                              let device_data = {
+                                device_id: "web",
+                                device_model: "web",
+                                screen_size: "120*240",
+                                ram: "web",
+                                login_id: "",
+                                passwd: "",
+                                os_version: "web",
+                                screen_dpi: "web",
+                                version: "2.01.10",
+                                fcm_token: ""
+                              };
+                              device_data.login_id = values.email;
+                              device_data.passwd = values.confirmPassword;
+                              apiCall
+                                .userLogin(device_data)
+                                .then(res => {
+                                  console.log(
+                                    "TCL: App -> componentDidMount -> rsp",
+                                    res
+                                  );
+                                  actions.setSubmitting(false);
+                                  if (res.status == 200) {
+                                    const { rootTree } = this.props;
+                                    if (!rootTree) return null;
+                                    let userData = res.data.data;
+                                    console.log(
+                                      "TCL: LoginContainer -> render -> userData",
+                                      userData
+                                    );
+
+                                    rootTree.user.updateUser(
+                                      userData.userId,
+                                      userData.fullName,
+                                      userData.emailId,
+                                      userData.gender,
+                                      parseInt(userData.mobileNo),
+                                      userData.DOB,
+                                      userData.registrationImages,
+                                      userData.auth_token,
+                                      userData.acc_lvl
+                                    );
+
+                                    authService.setToken(userData.auth_token);
+                                    this.props.history.push("/home");
+                                    //jumpTo("/home");
+                                  }
+                                })
+                                .catch(err => {
+                                  console.log(
+                                    "TCL: App -> componentDidMount -> err",
+                                    err
+                                  );
+                                  console.log(err.response);
+                                  const { status, data } = err.response;
+                                  this.alertRef.handleOpenDialog(
+                                    `Authentication Failed`,
+                                    data.message
+                                  );
+                                  actions.setSubmitting(false);
+                                });
+                              // this.props.history.push("/login");
                             }
                           })
                           .catch(err => {
@@ -206,15 +274,24 @@ class SignupContainer extends Component {
                               "TCL: App -> componentDidMount -> err",
                               err
                             );
+                            console.log(err.response);
+                            const { status, data } = err.response;
+                            this.alertRef.handleOpenDialog(
+                              `Failed processing request`,
+                              data.message
+                            );
                             actions.setSubmitting(false);
                           });
-                      } else {
-                        console.log("Licence Verify Error", res);
-                        actions.setSubmitting(false);
                       }
                     })
                     .catch(err => {
                       console.log("TCL: App -> componentDidMount -> err", err);
+                      console.log(err.response);
+                      const { status, data } = err.response;
+                      this.alertRef.handleOpenDialog(
+                        `Failed processing request`,
+                        data.message
+                      );
                       actions.setSubmitting(false);
                     });
                 }}
@@ -461,6 +538,11 @@ class SignupContainer extends Component {
                         <Typography variant="body2" component="h2" gutterBottom>
                           By signing up you agree to our terms and conditions
                         </Typography>
+                        { formikProps.isSubmitting &&
+                        <Typography variant="body2" component="body2" className={classes.processText}>
+                          Please wait while we are processing your request
+                        </Typography>
+                        }
                       </Grid>
                     </Grid>
                     <Button

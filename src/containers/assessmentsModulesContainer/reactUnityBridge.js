@@ -83,7 +83,13 @@ class ReactUnityBridge extends Component {
 
       this.unityContent.on("sendDataToNativeJS", jsonData => {
         console.log("Data From Unity");
-        console.log(jsonData);
+        let parsedData = JSON.parse(jsonData);
+        console.log(parsedData.data_label);
+        console.log(parsedData.json_data.playerid);
+        
+
+        // {"data_label":"pausedata","json_data":"{\"playerid\":\"TestPlayer\",\"game\":\"\",\"pausenumber\":\"1\",\"pausetime\":\"1579335096242\",\"resumetime\":\"1579335101423\"}","time_stamp":""}
+
       });
 
       this.unityContent.on("gameCompletedNotify", message => {
@@ -115,7 +121,9 @@ class ReactUnityBridge extends Component {
           console.log("resolution unity canvas not found");
         }
 
-        this.unityContent.send("MSM", "setPlayerID", user.userId);
+        this.unityContent.send(GameConfigModules[game_index].gameObjectToCall, "setPlayerID", user.userId);
+        console.log("TCL: ReactUnityBridge -> constructor -> user.userId", user.userId)
+        console.log("TCL: ReactUnityBridge -> constructor -> GameConfigModules[game_index].gameObjectToCall", GameConfigModules[game_index].gameObjectToCall)
       });
       this.unityContent.on("progress", progression => {
         // Now we can use the progression to for example
