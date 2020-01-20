@@ -39,8 +39,8 @@ class ReactUnityBridge extends Component {
       showUnity: true
     };
     const { user } = this.props.rootTree;
-    game_index = user.currentAssessment.current_game;
-    //game_index = "mob-07";
+    //game_index = user.currentAssessment.current_game;
+    game_index = "mob-09";
     if (game_index != "") {
       this.unityContent = new UnityContent(
         GameConfigModules[game_index].jsonPath,
@@ -103,6 +103,16 @@ class ReactUnityBridge extends Component {
           // Called when back or home is pressed in the game
           user.currentAssessment.update_current_game("");
           this.props.history.goBack();
+          
+          // console.log(
+          //   "TCL: ReactUnityBridge -> constructor -> this.props.history.entries",
+          //   this.props.history
+          // );
+          // this.props.history.entries = [];
+
+          // // history.push() auto increments from the current index
+          // this.props.history.index = -1;
+          //this.props.history.push("/login");
         } else if (dataFromUnity.data_label === "next") {
           // Called when proceed button is pressed in the game
 

@@ -1,6 +1,7 @@
 // https://hptechblogs.com/using-json-web-token-react/
 import decode from "jwt-decode";
 import jumpTo, { goTo } from "../navigation";
+import Cookies from "js-cookie";
 
 const authService = {
   isLoggedIn() {
@@ -21,23 +22,59 @@ const authService = {
     }
   },
 
+  isAppVersionChanged(versionNumber) {
+    try {
+      if (this.getAppVersion() && this.getAppVersion() != versionNumber) {
+        // Checking App Version Changes or not
+        return true;
+      } else {
+        return false;
+      }
+    } catch (err) {
+      return false;
+    }
+  },
+
   setToken(idToken) {
     console.log("TCL: setToken -> idToken", idToken);
     // Saves user token to localStorage
-    localStorage.setItem("id_token", idToken);
+    // localStorage.setItem("id_token", idToken);
+    Cookies.set("id_token", idToken, { expires: 7 });
   },
 
   getToken() {
     // Retrieves the user token from localStorage
-    return localStorage.getItem("id_token");
+    // return localStorage.getItem("id_token");
+    return Cookies.get("id_token");
+  },
+
+  setAppVersion(versionNumber) {
+    console.log("TCL: setAppVersion -> versionNumber", versionNumber);
+    Cookies.set("app_version", versionNumber, { expires: 7 });
+  },
+
+  getAppVersion() {
+    return Cookies.get("app_version") ? Cookies.get("app_version") : null;
+  },
+
+  clearCookies() {
+    try {
+      Cookies.remove("app_version");
+      Cookies.remove("id_token");
+      Cookies.remove("userStore");
+    } catch (error) {
+      console.log("TCL: clearCookies -> error", error);
+    }
   },
 
   logout() {
     // Clear user token and profile data from localStorage
     return new Promise((resolve, reject) => {
-      localStorage.removeItem("userStore");
-      localStorage.removeItem("id_token");
-      localStorage.removeItem("reset_game");
+      Cookies.remove("id_token");
+      Cookies.remove("userStore");
+      //localStorage.removeItem("userStore");
+      //localStorage.removeItem("id_token");
+      //localStorage.removeItem("reset_game");
       resolve(true);
     })
       .catch(error => {

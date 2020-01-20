@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import {
   AppBar,
   Button,
@@ -86,7 +86,6 @@ class AssessmentModules extends Component {
       localStorage.getItem("reset_game")
     );
 
-
     // let refresh_page = localStorage.getItem("reset_game");
     // if (refresh_page === true) {
     //   console.log(
@@ -101,8 +100,6 @@ class AssessmentModules extends Component {
     //   this.fetchAssessmentModules();
     // }
     this.fetchAssessmentModules();
-
-
   }
 
   // componentDidUpdate(prevProps) {
@@ -216,6 +213,7 @@ class AssessmentModules extends Component {
     authService.logout().then(res => {
       console.log("TCL: AssessmentModules -> onUserLogout -> res", res);
       this.props.history.push("/login");
+      window.location.reload();
     });
   };
 
@@ -323,23 +321,38 @@ class AssessmentModules extends Component {
     const { classes } = this.props;
     //const { games_to_play } = this.props.rootTree.user.currentAssessment;
     return (
-      <Grid container spacing={4}>
-        {this.state.final_module_data.map((Game, index) => (
-          <Grid item key={Game} xs={12} sm={6} md={4}>
-            <GameCard
-              key={index}
-              icon_path={Game.module_icon_path}
-              assessmentName={Game.module_name}
-              card_status={Game.module_status}
-              is_module_supported={
-                Game.module_source === "unity" ? true : false
-              }
-              // classes={classes}
-              onPress={() => this.handleClickOpen(index)}
-            ></GameCard>
-          </Grid>
-        ))}
-      </Grid>
+      <Fragment>
+        <Typography align="center" component="h1">
+          <Box fontWeight="fontWeightBold" fontSize={24}>
+            Assigned Modules
+          </Box>
+        </Typography>
+        <br />
+        <Typography align="center" component="body2">
+          <Box fontWeight="fontWeightRegular">
+            Assessments are timed. Try to finish all the assessment alloted to you with in the time. 
+            {/* Your assessment will expire in 12/09/2020 */}
+          </Box>
+        </Typography>
+        <br />
+        <Grid container spacing={4}>
+          {this.state.final_module_data.map((Game, index) => (
+            <Grid item key={Game} xs={12} sm={6} md={4}>
+              <GameCard
+                key={index}
+                icon_path={Game.module_icon_path}
+                assessmentName={Game.module_name}
+                card_status={Game.module_status}
+                is_module_supported={
+                  Game.module_source === "unity" ? true : false
+                }
+                // classes={classes}
+                onPress={() => this.handleClickOpen(index)}
+              ></GameCard>
+            </Grid>
+          ))}
+        </Grid>
+      </Fragment>
     );
   }
 
@@ -400,10 +413,8 @@ class AssessmentModules extends Component {
           <CssBaseline />
 
           <main>
-            {/* Hero unit */}
-            <div className={classes.heroContent}></div>
+          <div className={classes.heroContent}></div>
             <Container className={classes.cardGrid} maxWidth="md">
-              {/* End hero unit */}
               {this.getScreen(this.state.currentScreenName)}
             </Container>
             {/* <Dialog
@@ -500,7 +511,7 @@ const styles = theme => ({
     margin: theme.spacing(1, 1.5)
   },
   heroContent: {
-    padding: theme.spacing(8, 0, 6)
+    padding: theme.spacing(1, 0, 6)
   },
   cardHeader: {
     backgroundColor: theme.palette.grey[200]

@@ -165,7 +165,7 @@ class LoginContainer extends Component {
                       parseInt(userData.mobileNo),
                       userData.DOB,
                       userData.registrationImages,
-                      userData.auth_token,
+                      "",
                       userData.acc_lvl
                     );
 

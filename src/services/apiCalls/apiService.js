@@ -4,12 +4,12 @@
 // https://www.codementor.io/@capocaccia/keeping-axios-where-it-belongs-o6xidrkrk
 
 import axios from "axios";
-
+import appConfig from "../../configs/appConfig";
 //here is where we are defining our custom axios instance.
 //if all of your API routes come from the same location, or you are using a web proxy to hit the server, you can provide a base url
 //you can also attach axios interceptors to custom axios instances as well
 const apiClient = axios.create({
-  baseURL: "https://prspmobapi.perspect.ai/v3-dev"
+  baseURL: appConfig.baseURL
 });
 
 // let axiosConfig = {
@@ -45,14 +45,14 @@ const apiCall = {
     });
   },
   afterOTPUpdateResetPassword(payload) {
-    console.log("TCL: afterOTPUpdateResetPassword -> payload", payload)
+    console.log("TCL: afterOTPUpdateResetPassword -> payload", payload);
     // { email_id: email_id, otp: otp, passwd: values.confirmpassword };
     return apiClient.put("/login/passwd/", payload, {
       headers: this.getHeaders()
     });
   },
   licenceVerify(payload) {
-    console.log("TCL: licenceVerify -> payload", payload)
+    console.log("TCL: licenceVerify -> payload", payload);
     // { email_id: User_EmailID, key: values.licensekey };
     return apiClient.put("/users/licence/", payload, {
       headers: this.getHeaders()
@@ -98,8 +98,8 @@ const apiCall = {
     });
   },
 
-  gameDataUpload(payload){
-    console.log("TCL: gameDataUpload -> payload", payload)
+  gameDataUpload(payload) {
+    console.log("TCL: gameDataUpload -> payload", payload);
     // { name: res[sync_game_current_index]["game_name"], data: res[sync_game_current_index]["unity_data"] }
     return apiClient.post("/game/", payload, {
       headers: this.getHeaders()
@@ -107,7 +107,7 @@ const apiCall = {
   },
 
   imageDataUpload(payload) {
-    console.log("TCL: imageDataUpload -> payload", payload)
+    console.log("TCL: imageDataUpload -> payload", payload);
     // {  playerid: player_id, game_name: res[sync_image_current_index]["game_name"], timestamp: res[sync_image_current_index]["timestamp"],encoded_image: res[sync_image_current_index]["unity_data"] }
     return apiClient.post("/images/", payload, {
       headers: this.getHeaders()

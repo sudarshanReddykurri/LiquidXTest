@@ -8,6 +8,8 @@ import apiCall from "./services/apiCalls/apiService";
 import { setUpRootStore } from "./store/setup";
 import { Provider } from "mobx-react";
 import "./App.css";
+import appConfig from "./configs/appConfig";
+import authService from "./services/auth/authService";
 
 class App extends Component {
   constructor(props) {
@@ -20,6 +22,13 @@ class App extends Component {
   }
 
   componentDidMount() {
+    console.log("App cdm", appConfig.appVersion);
+    if (authService.getAppVersion() != null) {
+      if (authService.isAppVersionChanged(appConfig.appVersion)) {
+        authService.clearCookies();
+      }
+    }
+    authService.setAppVersion(appConfig.appVersion);
     const { rootTree } = setUpRootStore();
     this.setState({
       rootTree

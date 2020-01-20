@@ -118,6 +118,7 @@ class AssessmentHomeContainer extends Component {
     authService.logout().then(res => {
       console.log("TCL: AssessmentHomeContainer -> onUserLogout -> res", res);
       this.props.history.push("/login");
+      window.location.reload();
     });
   };
 
@@ -151,7 +152,7 @@ class AssessmentHomeContainer extends Component {
             <Fragment>
               <Typography className={classes.pageTitle} component="h1">
                 <Box fontWeight="fontWeightBold" fontSize={24}>
-                  Assessments
+                  Your Assessments
                 </Box>
               </Typography>
               <Typography align="center">
