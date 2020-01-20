@@ -74,17 +74,17 @@ class AssessmentModules extends Component {
       final_module_data: []
     };
     this.onActivateAssessments = this.onActivateAssessments.bind(this);
-    console.log("history state before", this.props.history.location.state);
+    // console.log("history state before", this.props.history.location.state);
     if (
       this.props.history.location.state &&
       this.props.history.location.state.from === "/game"
     ) {
       console.log("history state after", this.props.history.location.state);
     }
-    console.log(
-      "TCL: AssessmentModules -> constructor -> localStorage.getItem('reset_game')",
-      localStorage.getItem("reset_game")
-    );
+    // console.log(
+    //   "TCL: AssessmentModules -> constructor -> localStorage.getItem('reset_game')",
+    //   localStorage.getItem("reset_game")
+    // );
 
     // let refresh_page = localStorage.getItem("reset_game");
     // if (refresh_page === true) {
@@ -123,6 +123,12 @@ class AssessmentModules extends Component {
     // });
     // console.log("HELLO " + Game_Play.length);
   };
+
+  componentWillUnmount() {
+    if (timerId) {
+      clearInterval(timerId);
+    }
+  }
 
   fetchAssessmentModules() {
     const { user } = this.props.rootTree;
@@ -246,6 +252,10 @@ class AssessmentModules extends Component {
   }
 
   epochTimeToHumanReadableTime(expiryTime) {
+    console.log(
+      "TCL: AssessmentModules -> epochTimeToHumanReadableTime -> expiryTime",
+      expiryTime
+    );
     if (timerId) {
       clearInterval(timerId);
     }
@@ -262,7 +272,7 @@ class AssessmentModules extends Component {
       const days = NoData ? "-" : Math.floor(res / 86400);
       this.setState({
         expiryTime:
-          days + " d  " + hours + " h  " + minutes + " m  " + seconds + " s  "
+          days + "d  " + hours + "h  " + minutes + "m  " + seconds + "s  "
       });
       console.log("timerId", timerId);
       if (timeLeft <= 0) {
@@ -271,6 +281,10 @@ class AssessmentModules extends Component {
         this.onExpired();
       }
     }, 1000);
+  }
+
+  onExpired() {
+    this.moveToScreenBasedOnTimeValidation();
   }
 
   moveToScreenBasedOnTimeValidation() {
@@ -289,6 +303,7 @@ class AssessmentModules extends Component {
     } else {
       // this.props.activateTimerInAssessmentScreen(true);
       // this.props.updateExpiryTimeInAssessmentScreen(this.state.expiryTime);
+      this.epochTimeToHumanReadableTime(currentAssessment.expiryTime);
       screenToRender = "show_modules_screen";
     }
 
@@ -330,14 +345,15 @@ class AssessmentModules extends Component {
         <br />
         <Typography align="center" component="body2">
           <Box fontWeight="fontWeightRegular">
-            Assessments are timed. Try to finish all the assessment alloted to you with in the time. 
-            {/* Your assessment will expire in 12/09/2020 */}
+            {/* Assessments are timed. Try to finish all the assessment alloted to
+            you with in the time. */}
+            Your assessment will expire in  <b>{this.state.expiryTime != -1 ? this.state.expiryTime: "--"}</b>
           </Box>
         </Typography>
         <br />
         <Grid container spacing={4}>
           {this.state.final_module_data.map((Game, index) => (
-            <Grid item key={Game} xs={12} sm={6} md={4}>
+            <Grid item key={index} xs={12} sm={6} md={4}>
               <GameCard
                 key={index}
                 icon_path={Game.module_icon_path}
@@ -413,7 +429,7 @@ class AssessmentModules extends Component {
           <CssBaseline />
 
           <main>
-          <div className={classes.heroContent}></div>
+            <div className={classes.heroContent}></div>
             <Container className={classes.cardGrid} maxWidth="md">
               {this.getScreen(this.state.currentScreenName)}
             </Container>
