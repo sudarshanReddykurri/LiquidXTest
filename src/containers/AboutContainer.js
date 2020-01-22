@@ -45,7 +45,7 @@ const styles = theme => ({
     paddingTop: theme.spacing.unit * 3
   },
   margin: {
-    margin: theme.spacing(1),
+    margin: theme.spacing(1)
   },
   media: {
     paddingTop: "56.25%"
@@ -76,9 +76,7 @@ const styles = theme => ({
     padding: theme.spacing(0, 3, 2, 3),
     justifyContent: "space-between"
   },
-  logout:{
-
-  },
+  logout: {},
   purple: {
     color: theme.palette.getContrastText(deepPurple[500]),
     backgroundColor: deepPurple[500]
@@ -213,6 +211,7 @@ class AboutContainer extends Component {
                   </div>
                   <Box align="center">
                     <Button
+                      onClick={this.onUserLogout}
                       variant="outlined"
                       color="primary"
                       size="small"
@@ -226,7 +225,7 @@ class AboutContainer extends Component {
                       Logout
                     </Button>
                   </Box>
-                  <br/>
+                  <br />
                   <br />
                 </Card>
               </div>
@@ -238,8 +237,6 @@ class AboutContainer extends Component {
     );
   }
 }
-
-// export default withRouter(withStyles(styles)((observer(AboutContainer))));
 
 export default withRouter(
   withStyles(styles)(inject("rootTree")(observer(AboutContainer)))

@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import {
   Avatar,
   Button,
@@ -27,6 +27,8 @@ import authService from "../../services/auth/authService";
 // or we can use withRouter higher order component from react-router-dom
 import { withRouter } from "react-router-dom";
 import AlertDialog from "../../components/AlertDialog";
+import Footer from "../../components/Footer";
+import StickyFooter from "../../shared/StickyFooter";
 // import "../../styles.css";
 // This will give history prop which we can use to navigate
 
@@ -108,157 +110,176 @@ class LoginContainer extends Component {
     // if (authService.isLoggedIn()) return <Redirect to={from} />;
 
     return (
-      <Container component="main" maxWidth="xs">
-        <CssBaseline />
-        <AlertDialog
-          
-          ref={alertRef => {
-            this.alertRef = alertRef;
-          }}
-        />
-        {/* <p>{rootTree.user.companyName}</p> */}
-        <div>
-          <img
-            src={perspectAILogo}
-            alt="PerspectAI Logo"
-            style={{
-              margin: 40,
-              marginTop: 140,
-              marginBottom: 60,
-              width: "80%"
+      <Fragment>
+        <Container component="main" maxWidth="xs">
+          <CssBaseline />
+          <AlertDialog
+            ref={alertRef => {
+              this.alertRef = alertRef;
             }}
           />
+          {/* <p>{rootTree.user.companyName}</p> */}
+          <div>
+            <img
+              src={perspectAILogo}
+              alt="PerspectAI Logo"
+              style={{
+                margin: 40,
+                marginTop: 140,
+                marginBottom: 60,
+                width: "80%"
+              }}
+            />
 
-          <Typography component="h1" variant="h5">
-            Login
-          </Typography>
+            <Typography component="h1" variant="h5">
+              Login
+            </Typography>
 
-          <Formik
-            initialValues={{ email: "", password: "" }}
-            validationSchema={validationSchema}
-            onSubmit={(values, actions) => {
-              actions.setFieldTouched("email");
-              actions.setFieldTouched("password");
-              actions.setSubmitting(true);
-              data.login_id = values.email;
-              data.passwd = values.password;
+            <Formik
+              initialValues={{ email: "", password: "" }}
+              validationSchema={validationSchema}
+              onSubmit={(values, actions) => {
+                actions.setFieldTouched("email");
+                actions.setFieldTouched("password");
+                actions.setSubmitting(true);
+                data.login_id = values.email;
+                data.passwd = values.password;
 
-              apiCall
-                .userLogin(data)
-                .then(res => {
-                  console.log("TCL: App -> componentDidMount -> rsp", res);
-                  actions.setSubmitting(false);
-                  if (res.status == 200) {
-                    const { rootTree } = this.props;
-                    if (!rootTree) return null;
-                    let userData = res.data.data;
-                    console.log(
-                      "TCL: LoginContainer -> render -> userData",
-                      userData
+                apiCall
+                  .userLogin(data)
+                  .then(res => {
+                    console.log("TCL: App -> componentDidMount -> rsp", res);
+                    actions.setSubmitting(false);
+                    if (res.status == 200) {
+                      const { rootTree } = this.props;
+                      if (!rootTree) return null;
+                      let userData = res.data.data;
+                      console.log(
+                        "TCL: LoginContainer -> render -> userData",
+                        userData
+                      );
+
+                      rootTree.user.updateUser(
+                        userData.userId,
+                        userData.fullName,
+                        userData.emailId,
+                        userData.gender,
+                        parseInt(userData.mobileNo),
+                        userData.DOB,
+                        userData.registrationImages,
+                        "",
+                        userData.acc_lvl
+                      );
+
+                      authService.setToken(userData.auth_token);
+                      this.props.history.push("/home");
+                      //jumpTo("/home");
+                    }
+                  })
+                  .catch(err => {
+                    console.log("TCL: App -> componentDidMount -> err", err);
+                    console.log(err.response);
+                    const { status, data } = err.response;
+                    this.alertRef.handleOpenDialog(
+                      `Authentication Failed`,
+                      data.message
                     );
-
-                    rootTree.user.updateUser(
-                      userData.userId,
-                      userData.fullName,
-                      userData.emailId,
-                      userData.gender,
-                      parseInt(userData.mobileNo),
-                      userData.DOB,
-                      userData.registrationImages,
-                      "",
-                      userData.acc_lvl
-                    );
-
-                    authService.setToken(userData.auth_token);
-                    this.props.history.push("/home");
-                    //jumpTo("/home");
-                  }
-                })
-                .catch(err => {
-                  console.log("TCL: App -> componentDidMount -> err", err);
-                  console.log(err.response);
-                  const { status, data} = err.response;
-                  this.alertRef.handleOpenDialog(`Authentication Failed`,data.message);
-                  actions.setSubmitting(false);
-                });
-            }}
-            render={formikProps => (
-              <React.Fragment>
-                <TextField
-                  variant="outlined"
-                  margin="normal"
-                  required
-                  fullWidth
-                  id="email"
-                  label="Email Address"
-                  name="email"
-                  autoComplete="email"
-                  autoFocus
-                  helperText={
-                    formikProps.touched.email ? formikProps.errors.email : ""
-                  }
-                  error={
-                    formikProps.touched.email &&
-                    Boolean(formikProps.errors.email)
-                  }
-                  onChange={formikProps.handleChange("email")}
-                />
-                <TextField
-                  variant="outlined"
-                  margin="normal"
-                  required
-                  fullWidth
-                  name="password"
-                  label="Password"
-                  type="password"
-                  id="password"
-                  autoComplete="current-password"
-                  helperText={
-                    formikProps.touched.password
-                      ? formikProps.errors.password
-                      : ""
-                  }
-                  error={
-                    formikProps.touched.password &&
-                    Boolean(formikProps.errors.password)
-                  }
-                  onChange={formikProps.handleChange("password")}
-                />
-                {/* <FormControlLabel
+                    actions.setSubmitting(false);
+                  });
+              }}
+              render={formikProps => (
+                <React.Fragment>
+                  <TextField
+                    variant="outlined"
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="email"
+                    label="Email Address"
+                    name="email"
+                    autoComplete="email"
+                    autoFocus
+                    helperText={
+                      formikProps.touched.email ? formikProps.errors.email : ""
+                    }
+                    error={
+                      formikProps.touched.email &&
+                      Boolean(formikProps.errors.email)
+                    }
+                    onChange={formikProps.handleChange("email")}
+                  />
+                  <TextField
+                    variant="outlined"
+                    margin="normal"
+                    required
+                    fullWidth
+                    name="password"
+                    label="Password"
+                    type="password"
+                    id="password"
+                    autoComplete="current-password"
+                    helperText={
+                      formikProps.touched.password
+                        ? formikProps.errors.password
+                        : ""
+                    }
+                    error={
+                      formikProps.touched.password &&
+                      Boolean(formikProps.errors.password)
+                    }
+                    onChange={formikProps.handleChange("password")}
+                  />
+                  {/* <FormControlLabel
           control={<Checkbox value="remember" color="primary" />}
           label="Remember me"
         /> */}
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  className={classes.submit}
-                  onClick={formikProps.handleSubmit}
-                  disabled={formikProps.isSubmitting}
-                  // component={Link}
-                  // to="/about"
-                >
-                  Login
-                </Button>
-              </React.Fragment>
-            )}
-          />
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    color="primary"
+                    className={classes.submit}
+                    onClick={formikProps.handleSubmit}
+                    disabled={formikProps.isSubmitting}
+                    // component={Link}
+                    // to="/about"
+                  >
+                    Login
+                  </Button>
+                </React.Fragment>
+              )}
+            />
 
-          <Grid container>
-            <Grid item xs>
-              <Link to="/forgot" variant="body2">
-                Forgot password?
-              </Link>
+            <Grid container>
+              <Grid item xs>
+                <Link to="/forgot" variant="body2">
+                  Forgot password?
+                </Link>
+              </Grid>
+              <Grid item>
+                <Link to="/signup" variant="body2">
+                  {"Don't have an account? Sign Up"}
+                </Link>
+              </Grid>
             </Grid>
-            <Grid item>
-              <Link to="/signup" variant="body2">
-                {"Don't have an account? Sign Up"}
-              </Link>
-            </Grid>
-          </Grid>
-        </div>
-      </Container>
+          </div>
+        </Container>
+        <div
+          style={{
+            height: 100
+          }}
+        ></div>
+        <Container component="main" maxWidth="xs">
+          {" "}
+          <Footer />
+        </Container>
+        <div
+          style={{
+            height: 50
+          }}
+        ></div>
+        <StickyFooter />
+      </Fragment>
     );
   }
 }

@@ -79,6 +79,7 @@ const AppRoutes = forwardRef((props, ref) => {
         <PrivateRoute path="/about" component={AboutContainer} />
         <PrivateRoute path="/am" component={AssessmentModules} />
         <PrivateRoute path="/game" component={ReactUnityBridge} />
+        {/* <Route path="/fb" component={() => window.location = 'http://google.com'} /> */}
 
         <Redirect from="/" exact to="/login" />
         <Route path="" component={NotFound} />

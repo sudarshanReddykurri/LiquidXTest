@@ -39,8 +39,8 @@ class ReactUnityBridge extends Component {
       showUnity: true
     };
     const { user } = this.props.rootTree;
-    //game_index = user.currentAssessment.current_game;
-    game_index = "mob-09";
+    game_index = user.currentAssessment.current_game;
+    //game_index = "mob-09";
     if (game_index != "") {
       this.unityContent = new UnityContent(
         GameConfigModules[game_index].jsonPath,
