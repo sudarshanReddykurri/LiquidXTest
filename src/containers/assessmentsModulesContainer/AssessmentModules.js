@@ -30,6 +30,7 @@ import { withRouter } from "react-router-dom";
 import apiCall from "../../services/apiCalls/apiService";
 import CountDownCard from "../../components/CountDownCard";
 import GameCard from "../../components/GameCard";
+import ModalWindow from "../../components/ModalWindow";
 
 const screens = {
   LOADING: "loading_screen",
@@ -73,6 +74,7 @@ class AssessmentModules extends Component {
       expiryTime: -1,
       final_module_data: []
     };
+    this.modalRef = null;
     this.onActivateAssessments = this.onActivateAssessments.bind(this);
     // console.log("history state before", this.props.history.location.state);
     if (
@@ -81,6 +83,10 @@ class AssessmentModules extends Component {
     ) {
       console.log("history state after", this.props.history.location.state);
     }
+    // Clearing the current game on load or reload
+    const { currentAssessment } = this.props.rootTree.user;
+    currentAssessment.update_current_game("");
+
     // console.log(
     //   "TCL: AssessmentModules -> constructor -> localStorage.getItem('reset_game')",
     //   localStorage.getItem("reset_game")
@@ -191,12 +197,16 @@ class AssessmentModules extends Component {
       } else {
         games_to_unlock_index_found = -1;
       }
-      if (complete_game_index_found != -1) {
-        module_data[game_key]["module_status"] = "completed";
-      } else if (games_to_unlock_index_found != -1) {
+      if (this.props.rootTree.user.accessType == "superaccess") {
         module_data[game_key]["module_status"] = "unlocked";
       } else {
-        module_data[game_key]["module_status"] = "locked";
+        if (complete_game_index_found != -1) {
+          module_data[game_key]["module_status"] = "completed";
+        } else if (games_to_unlock_index_found != -1) {
+          module_data[game_key]["module_status"] = "unlocked";
+        } else {
+          module_data[game_key]["module_status"] = "locked";
+        }
       }
       temp_module_data.push(module_data[game_key]);
     });
@@ -233,13 +243,20 @@ class AssessmentModules extends Component {
       "TCL: AssessmentModules -> handleClickOpen -> this.state.final_module_data[index]['key']",
       this.state.final_module_data[index]["key"]
     );
-    this.props.history.push("/game");
+
+    this.modalRef.handleOpen();
 
     // this.setState({
     //   gamenumber: index,
     //   open: true
     // });
   }
+
+  startModule = () => {
+    console.log("Called from Modal Window Proceed To Game");
+    this.props.history.push("/game");
+    this.modalRef.handleClose();
+  };
 
   handleClose = () => {
     this.setState({
@@ -343,11 +360,12 @@ class AssessmentModules extends Component {
           </Box>
         </Typography>
         <br />
-        <Typography align="center" component="body2">
+        <Typography align="center" variant="body2">
           <Box fontWeight="fontWeightRegular">
             {/* Assessments are timed. Try to finish all the assessment alloted to
             you with in the time. */}
-            Your assessment will expire in  <b>{this.state.expiryTime != -1 ? this.state.expiryTime: "--"}</b>
+            Your assessment will expire in{" "}
+            <b>{this.state.expiryTime != -1 ? this.state.expiryTime : "--"}</b>
           </Box>
         </Typography>
         <br />
@@ -427,6 +445,12 @@ class AssessmentModules extends Component {
         <NavBar onLogOut={this.onUserLogout} />
         <React.Fragment>
           <CssBaseline />
+          <ModalWindow
+            ref={modalRef => {
+              this.modalRef = modalRef;
+            }}
+            proceedToGame={this.startModule}
+          />
 
           <main>
             <div className={classes.heroContent}></div>

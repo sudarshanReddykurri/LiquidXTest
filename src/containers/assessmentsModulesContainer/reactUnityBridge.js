@@ -1,4 +1,5 @@
-import React, { Component } from "react";
+// https://medium.com/@subwaymatch/disabling-back-button-in-react-with-react-router-v5-34bb316c99d7
+import React, { Component, Fragment } from "react";
 import Unity, { UnityContent } from "react-unity-webgl";
 import { GameConfigModules } from "./gameConfig.js";
 import {
@@ -31,16 +32,38 @@ import { inject, observer } from "mobx-react";
 import { withRouter } from "react-router-dom";
 import apiCall from "../../services/apiCalls/apiService";
 import "./reactUnityStyles.css";
+import FullScreenButton from "../../components/FullScreenButton";
+
+const styles = theme => ({
+  icon: {
+    marginRight: theme.spacing(2)
+  },
+  boxRoot: {
+    //padding: theme.spacing(3, 2),
+    //height: 200,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignSelf: "center"
+  }
+});
+
 let game_index = "";
 class ReactUnityBridge extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showUnity: true
+      showUnity: false
     };
+    this.fullScreenRef = null;
     const { user } = this.props.rootTree;
+    console.log(
+      "TCL: ReactUnityBridge -> constructor -> this.props.rootTree",
+      this.props.rootTree
+    );
     game_index = user.currentAssessment.current_game;
-    //game_index = "mob-09";
+    //this.OnDimensionChange = this.updateDimensions.bind(this);
+    //game_index = "mob-11";
     if (game_index != "") {
       this.unityContent = new UnityContent(
         GameConfigModules[game_index].jsonPath,
@@ -103,7 +126,7 @@ class ReactUnityBridge extends Component {
           // Called when back or home is pressed in the game
           user.currentAssessment.update_current_game("");
           this.props.history.goBack();
-          
+
           // console.log(
           //   "TCL: ReactUnityBridge -> constructor -> this.props.history.entries",
           //   this.props.history
@@ -160,48 +183,135 @@ class ReactUnityBridge extends Component {
       console.log("Game Not Found");
     }
   }
+
+  componentDidMount() {
+    if (game_index != "") {
+      this.setState(
+        {
+          showUnity: true
+        },
+        () => {
+          // if (this.fullScreenRef) {
+          //   this.fullScreenRef.handleToggle();
+          // }
+        }
+      );
+    }
+    const { history } = this.props;
+
+    //window.addEventListener("resize", this.OnDimensionChange);
+    // Hey, a popstate event happened!
+    window.addEventListener("popstate", () => {
+      //history.go(1);
+      window.location.reload();
+    });
+  }
+
+  componentWillUnmount() {
+    this.fullScreenRef = null;
+    //window.removeEventListener("resize", this.OnDimensionChange);
+  }
+
+  updateDimensions() {
+    console.log(
+      "TCL: ReactUnityBridge -> updateDimensions -> window.innerWidth",
+      window.innerWidth
+    );
+    // if(window.innerWidth < 500) {
+    //   this.setState({ width: 450, height: 102 });
+    // } else {
+    //   let update_width  = window.innerWidth-100;
+    //   let update_height = Math.round(update_width/4.4);
+    //   this.setState({ width: update_width, height: update_height });
+    // }
+  }
+
   render() {
+    const { classes } = this.props;
     return (
-      <div className="App">
-        <div
-          //className="gameContainer"
-          style={{
-            backgroundColor: "#fff"
-          }}
-        >
-          <Unity
-            unityContent={this.unityContent}
-            width="100%"
-            height="100%"
-            ref={ref => (this.unityRef = ref)}
-          />
-        </div>
-        {/* <Unity unityContent={this.unityContent} /> */}
-        <Dialog
-          fullScreen
-          open={this.state.openLoading}
-          onClose={this.handleClose}
-        >
-          <DialogTitle
+      <Fragment>
+        {this.state.showUnity ? (
+          <div className="App">
+            {/* <FullScreenButton ref={ref => (this.fullScreenRef = ref)} /> */}
+            <div
+              //className="gameContainer"
+              style={{
+                backgroundColor: "#fff"
+              }}
+            >
+              <Unity
+                unityContent={this.unityContent}
+                width="100%"
+                height="100%"
+                ref={ref => (this.unityRef = ref)}
+              />
+            </div>
+            {/* <Unity unityContent={this.unityContent} /> */}
+            <Dialog
+              fullScreen
+              open={this.state.openLoading}
+              onClose={this.handleClose}
+            >
+              {/* <DialogTitle
             id="form-dialog-title"
             style={{ textAlign: "center", backgroundColor: "transparent" }}
           >
-            Loading game..
-          </DialogTitle>
-          <DialogContent>
-            <CircleToBlockLoading size="small" />
-          </DialogContent>
-        </Dialog>
-      </div>
+           
+          </DialogTitle> */}
+              <DialogContent>
+                <CircleToBlockLoading size="small" ></CircleToBlockLoading>
+                <Box align="center">
+                <Typography> Loading game..</Typography>
+                </Box>
+              </DialogContent>
+            </Dialog>
+          </div>
+        ) : (
+          <Grid
+            container
+            spacing={0}
+            align="center"
+            justify="center"
+            direction="column"
+            style={{ marginTop: "20%" }}
+          >
+            <Grid item>
+              <h4>404 Game Not Found!!</h4>
+              <p>Please go back and select the game</p>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  this.props.history.goBack();
+                }}
+              >
+                Go Back
+              </Button>
+              <p>
+                <i>
+                  Don't reload the page and don't use browser controls to
+                  navigate
+                </i>
+              </p>
+
+              {/* <i>
+                <p>
+                  Note the styling of body, html and #root in index.css for this
+                  to work.
+                </p>
+                <p>
+                  Thanks to{" "}
+                  <a href="https://codesandbox.io/s/gLE85V2D">STUNAZ</a> for
+                  improving upon my original!
+                </p>
+              </i> */}
+            </Grid>
+          </Grid>
+        )}
+      </Fragment>
     );
   }
 }
-
-const styles = theme => ({
-  icon: {
-    marginRight: theme.spacing(2)
-  }
-});
 
 export default withRouter(
   withStyles(styles)(inject("rootTree")(observer(ReactUnityBridge)))

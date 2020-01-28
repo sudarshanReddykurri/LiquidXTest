@@ -1,4 +1,5 @@
 // https://github.com/mobxjs/mobx-state-tree/tree/master/packages/mst-example-bookshop/src/stores
+// https://www.mydatahack.com/sorting-json-by-multiple-keys-with-javascript/
 import {
   types,
   onSnapshot,
@@ -267,7 +268,70 @@ const UserModel = types
       return self.assessments;
     }
 
-    return { parent, getAssessments, getAssessmentsCount };
+    // Sorting Array of JSON's by Name
+    // function compareName(a, b) {
+    //   // Use toUpperCase() or toLowerCase() to ignore character casing
+    //   const nameA = a.Name.toUpperCase();
+    //   const nameB = b.Name.toUpperCase();
+
+    //   let comparison = 0;
+    //   if (nameA > nameB) {
+    //     comparison = 1;
+    //   } else if (nameA < nameB) {
+    //     comparison = -1;
+    //   }
+    //   return comparison;
+    // }
+
+    // Sorting Array of JSON's by Property (Use this function to sort either strings or numbers)
+    function compareValues(key, order = "asc") {
+      return function innerSort(a, b) {
+        if (!a.hasOwnProperty(key) || !b.hasOwnProperty(key)) {
+          // property doesn't exist on either object
+          return 0;
+        }
+
+        const varA = typeof a[key] === "string" ? a[key].toUpperCase() : a[key];
+        const varB = typeof b[key] === "string" ? b[key].toUpperCase() : b[key];
+
+        let comparison = 0;
+        if (varA > varB) {
+          comparison = 1;
+        } else if (varA < varB) {
+          comparison = -1;
+        }
+        return order === "desc" ? comparison * -1 : comparison;
+      };
+    }
+
+    // Sorting Single JSON by Key
+    function sortByKey(jsObj) {
+      var sortedArray = [];
+      // Push each JSON Object entry in array by [key, value]
+      for (var i in jsObj) {
+        sortedArray.push([i, jsObj[i]]);
+      }
+      // Run native sort function and returns sorted array.
+      return sortedArray.sort();
+    }
+
+    // Sorting Single JSON by Value
+    function sortByValue(jsObj) {
+      var sortedArray = [];
+      for (var i in jsObj) {
+        // Push each JSON Object entry in array by [value, key]
+        sortedArray.push([jsObj[i], i]);
+      }
+      return sortedArray.sort();
+    }
+
+    function sortAssessments(key_to_sort) {
+      //expiryTime
+     return self.assessments.sort(compareValues(key_to_sort, "asc"));
+      //self.compareValues();
+    }
+
+    return { parent, getAssessments, getAssessmentsCount, sortAssessments };
   });
 
 const RootModel = types.model("Root", {

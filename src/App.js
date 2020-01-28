@@ -43,7 +43,7 @@ class App extends Component {
         <AppRoutes
           ref={routerRef => {
             // this.ref = routerRef;
-            registerNav(routerRef);
+           // registerNav(routerRef);
           }}
         ></AppRoutes>
       </Provider>

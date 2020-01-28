@@ -56,7 +56,7 @@ const SocialMedia = [
   {
     platform: "Instagram",
     snippet: <InstagramIcon style={{ color: "#C13584" }} />,
-    url: "",
+    url: "https://www.instagram.com/perspectai/",
     color: "#C13584"
   }
 ];

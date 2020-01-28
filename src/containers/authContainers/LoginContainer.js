@@ -266,7 +266,7 @@ class LoginContainer extends Component {
         </Container>
         <div
           style={{
-            height: 100
+            height: 250
           }}
         ></div>
         <Container component="main" maxWidth="xs">

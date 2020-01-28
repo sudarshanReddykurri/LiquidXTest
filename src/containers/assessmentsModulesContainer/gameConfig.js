@@ -73,8 +73,8 @@ export const GameConfigModules = {
     gameObjectToCall: "Wrapper",
     jsonPath: "GameBuilds/MotivesBuild/Build/MotivesBuild.json",
     unityLoaderPath: "GameBuilds/MotivesBuild/Build/UnityLoader.js",
-    width: 960,
-    height: 540
+    width: 540,
+    height: 960
   },
   "mob-16-l1": {
     gameObjectToCall: "MSM",
