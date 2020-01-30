@@ -18,7 +18,7 @@ import {
 import { inject, observer } from "mobx-react";
 import { Redirect, Link } from "react-router-dom";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
-import { Formik } from "formik";
+import { Formik,Form } from "formik";
 import * as Yup from "yup";
 import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
 import apiCall from "../../services/apiCalls/apiService";
@@ -189,6 +189,7 @@ class LoginContainer extends Component {
               }}
               render={formikProps => (
                 <React.Fragment>
+                <Form>
                   <TextField
                     variant="outlined"
                     margin="normal"
@@ -246,6 +247,7 @@ class LoginContainer extends Component {
                   >
                     Login
                   </Button>
+                  </Form>
                 </React.Fragment>
               )}
             />

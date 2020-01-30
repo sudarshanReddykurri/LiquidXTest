@@ -17,7 +17,7 @@ import {
 } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
-import { Formik } from "formik";
+import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
 import apiCall from "../../services/apiCalls/apiService";
@@ -114,7 +114,7 @@ class SetNewPasswordContainer extends Component {
           <Typography variant="subtitle">
             Please update your new password here
           </Typography>
-          <form className={classes.form} noValidate>
+          {/* <form className={classes.form} noValidate> */}
             <Formik
               initialValues={{ password: "", confirmPassword: "" }}
               validationSchema={validationSchema}
@@ -213,6 +213,7 @@ class SetNewPasswordContainer extends Component {
               }}
               render={formikProps => (
                 <React.Fragment>
+                <Form>
                   <TextField
                     variant="outlined"
                     required
@@ -268,10 +269,11 @@ class SetNewPasswordContainer extends Component {
                   >
                     Submit
                   </Button>
+                  </Form>
                 </React.Fragment>
               )}
             />
-          </form>
+          {/* </form> */}
         </div>
       </Container>
     );

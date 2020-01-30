@@ -28,7 +28,7 @@ import {
 import { Link } from "react-router-dom";
 import { inject, observer } from "mobx-react";
 import StickyFooter from "../../shared/StickyFooter";
-import { Formik } from "formik";
+import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import moment from "moment";
 import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
@@ -151,7 +151,7 @@ class SignupContainer extends Component {
             <Typography component="h1" variant="h5">
               Sign up
             </Typography>
-            <form className={classes.form} noValidate>
+            {/* <form className={classes.form} noValidate> */}
               <Formik
                 initialValues={{
                   firstName: "",
@@ -297,6 +297,7 @@ class SignupContainer extends Component {
                 }}
                 render={formikProps => (
                   <React.Fragment>
+                  <Form>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <TextField
@@ -555,6 +556,7 @@ class SignupContainer extends Component {
                     >
                       Sign Up
                     </Button>
+                    </Form>
                   </React.Fragment>
                 )}
               />
@@ -565,7 +567,7 @@ class SignupContainer extends Component {
                   </Link>
                 </Grid>
               </Grid>
-            </form>
+            {/* </form> */}
           </div>
           <br />
           <br />

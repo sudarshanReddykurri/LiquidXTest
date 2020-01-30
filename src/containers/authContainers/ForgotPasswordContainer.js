@@ -17,7 +17,7 @@ import {
 } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
-import { Formik } from "formik";
+import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
 import apiCall from "../../services/apiCalls/apiService";
@@ -132,6 +132,7 @@ class ForgotPasswordContainer extends Component {
               }}
               render={formikProps => (
                 <React.Fragment>
+                <Form>
                   <TextField
                     variant="outlined"
                     margin="normal"
@@ -164,6 +165,7 @@ class ForgotPasswordContainer extends Component {
                   >
                     Submit
                   </Button>
+                  </Form>
                 </React.Fragment>
               )}
             />
