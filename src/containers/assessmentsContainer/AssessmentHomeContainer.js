@@ -27,10 +27,11 @@ import MoreVertIcon from "@material-ui/icons/MoreVert";
 const ITEM_HEIGHT = 48;
 
 const filterOptions = [
-  { filterName: "None", filterValue: "None"},
-  { filterName: "Expiry Time", filterValue: "expiryTime"},
-  { filterName: "Company (A-Z)", filterValue: "companyName"},
-  { filterName: "Assessment (A-Z)", filterValue: "assessmentName"},
+  { filterName: "Show All Assessments", filterValue: "None" },
+  { filterName: "Active Assessments", filterValue: "active" },
+  { filterName: "Expiry Time (Ascending)", filterValue: "expiryTime" },
+  { filterName: "Company (A-Z)", filterValue: "companyName" },
+  { filterName: "Assessment (A-Z)", filterValue: "assessmentName" }
   // { filterName: "assessmentId", filterValue: "assessmentId"}
 ];
 class AssessmentHomeContainer extends Component {
@@ -41,7 +42,7 @@ class AssessmentHomeContainer extends Component {
       isLoading: true,
       isFetchingAssessment: false,
       totalAssessments: 0,
-      filterSelection: "",
+      filterSelection: "active",
       showFilterMenu: false
     };
     console.log("AssessmentHomeContainer");
@@ -207,55 +208,59 @@ class AssessmentHomeContainer extends Component {
                 </Box>
               </Typography>
               <br />
-              <Box align="right">
-                <FormControl className={classes.formControl}>
-                  <InputLabel id="demo-controlled-open-select-label">
-                    Sort By
-                  </InputLabel>
-                  <Select
-                    labelId="demo-controlled-open-select-label"
-                    id="demo-controlled-open-select"
-                    open={this.state.showFilterMenu}
-                    onClose={this.closeFilterMenu}
-                    onOpen={this.openFilterMenu}
-                    value={this.state.filterSelection}
-                    onChange={this.filterChange}
-                  >
-                    {filterOptions.map(option => (
-                      <MenuItem
-                        key={option.filterName}
-                        onClick={this.filterChange}
-                        value={option.filterValue}
-                      >
-                        {option.filterName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
+              {this.state.totalAssessments >= 2 && (
+                <Box align="right">
+                  <FormControl className={classes.formControl}>
+                    <InputLabel id="demo-controlled-open-select-label">
+                      Sort By
+                    </InputLabel>
+                    <Select
+                      labelId="demo-controlled-open-select-label"
+                      id="demo-controlled-open-select"
+                      open={this.state.showFilterMenu}
+                      onClose={this.closeFilterMenu}
+                      onOpen={this.openFilterMenu}
+                      value={this.state.filterSelection}
+                      onChange={this.filterChange}
+                    >
+                      {filterOptions.map(option => (
+                        <MenuItem
+                          key={option.filterName}
+                          onClick={this.filterChange}
+                          value={option.filterValue}
+                        >
+                          {option.filterName}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              )}
               <Grid
                 container
                 spacing={24}
                 justify={
-                  this.state.totalAssessments < 2 ? "center" : "flex-start"
+                  this.state.totalAssessments <= 2 ? "center" : "flex-start"
                 }
                 direction="row"
               >
                 {/* rootTree.user.getAssessments() */}
-                {rootTree.user.sortAssessments(this.state.filterSelection).map((assessment, index) => {
-                  return (
-                    <Grid item key={index} xs={12} sm={6} md={4}>
-                      <AssessmentCard
-                        key={assessment.id}
-                        organizationName={assessment.companyName}
-                        assessmentName={assessment.assessmentName}
-                        expiryTime={epochToJsDate(assessment.expiryTime)}
-                        image={assessment.logoUrl}
-                        onPress={() => this.goToAssessment(assessment)}
-                      ></AssessmentCard>
-                    </Grid>
-                  );
-                })}
+                {rootTree.user
+                  .sortAssessments(this.state.filterSelection)
+                  .map((assessment, index) => {
+                    return (
+                      <Grid item key={index} xs={12} sm={6} md={4}>
+                        <AssessmentCard
+                          key={assessment.id}
+                          organizationName={assessment.companyName}
+                          assessmentName={assessment.assessmentName}
+                          expiryTime={epochToJsDate(assessment.expiryTime)}
+                          image={assessment.logoUrl}
+                          onPress={() => this.goToAssessment(assessment)}
+                        ></AssessmentCard>
+                      </Grid>
+                    );
+                  })}
               </Grid>
             </Fragment>
           )}

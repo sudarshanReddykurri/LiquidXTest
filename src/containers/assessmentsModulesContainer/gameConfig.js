@@ -64,8 +64,8 @@ export const GameConfigModules = {
   },
   "mob-10": {
     gameObjectToCall: "MSM",
-    jsonPath: "GameBuilds/tsmBuild/Build/tsmBuild.json",
-    unityLoaderPath: "GameBuilds/tsmBuild/Build/UnityLoader.js",
+    jsonPath: "GameBuilds/TsmBuild/Build/TsmBuild.json",
+    unityLoaderPath: "GameBuilds/TsmBuild/Build/UnityLoader.js",
     width: 540,
     height: 960
   },
@@ -78,22 +78,22 @@ export const GameConfigModules = {
   },
   "mob-16-l1": {
     gameObjectToCall: "MSM",
-    jsonPath: "GameBuilds/tsmBuild/Build/tsmBuild.json",
-    unityLoaderPath: "GameBuilds/tsmBuild/Build/UnityLoader.js",
+    jsonPath: "GameBuilds/TsmBuild/Build/TsmBuild.json",
+    unityLoaderPath: "GameBuilds/TsmBuild/Build/UnityLoader.js",
     width: 540,
     height: 960
   },
   "mob-16-l2": {
     gameObjectToCall: "MSM",
-    jsonPath: "GameBuilds/tsmBuild/Build/tsmBuild.json",
-    unityLoaderPath: "GameBuilds/tsmBuild/Build/UnityLoader.js",
+    jsonPath: "GameBuilds/TsmBuild/Build/TsmBuild.json",
+    unityLoaderPath: "GameBuilds/TsmBuild/Build/UnityLoader.js",
     width: 540,
     height: 960
   },
   "mob-16-l3": {
     gameObjectToCall: "MSM",
-    jsonPath: "GameBuilds/tsmBuild/Build/tsmBuild.json",
-    unityLoaderPath: "GameBuilds/tsmBuild/Build/UnityLoader.js",
+    jsonPath: "GameBuilds/TsmBuild/Build/TsmBuild.json",
+    unityLoaderPath: "GameBuilds/TsmBuild/Build/UnityLoader.js",
     width: 540,
     height: 960
   },
@@ -101,8 +101,8 @@ export const GameConfigModules = {
     gameObjectToCall: "vis_man",
     jsonPath: "GameBuilds/BrainSwitch/Build/BrainSwitch.json",
     unityLoaderPath: "GameBuilds/BrainSwitch/Build/UnityLoader.js",
-    width: 540,
-    height: 960
+    width: 960,
+    height: 540
   },
   "mob-18": {
     gameObjectToCall: "GameLogic",

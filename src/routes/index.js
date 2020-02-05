@@ -81,7 +81,8 @@ const AppRoutes = forwardRef((props, ref) => {
         <PrivateRoute path="/game" component={ReactUnityBridge} />
         {/* <Route path="/fb" component={() => window.location = 'http://google.com'} /> */}
 
-        <Redirect from="/" exact to="/login" />
+        {/* <Redirect from="/" to="/login" /> */}
+        <Route exact path="/" render={() => <Redirect to="/login" />} />
         <Route path="" component={NotFound} />
       </Switch>
       {/* </Provider> */}

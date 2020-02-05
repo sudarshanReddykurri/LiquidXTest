@@ -10,6 +10,7 @@ import {
   onPatch
 } from "mobx-state-tree";
 import uuid from "uuid";
+import { now } from "moment";
 
 const AssessmentModel = types.model("Assessment", {
   id: types.identifier,
@@ -327,7 +328,21 @@ const UserModel = types
 
     function sortAssessments(key_to_sort) {
       //expiryTime
-     return self.assessments.sort(compareValues(key_to_sort, "asc"));
+      let assessments = [];
+      if (key_to_sort == "active") {
+        self.assessments
+          .sort(compareValues(key_to_sort, "asc"))
+          .map((assessment, index) => {
+            console.log("TCL: sortAssessments -> assessment", assessment);
+            const timeLeft =
+              assessment.expiryTime * 1000 - new Date().getTime();
+            if (timeLeft >= 0) {
+              assessments.push(assessment);
+            }
+          });
+        return assessments;
+      }
+      return self.assessments.sort(compareValues(key_to_sort, "asc"));
       //self.compareValues();
     }
 

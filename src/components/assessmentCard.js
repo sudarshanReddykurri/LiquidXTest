@@ -21,7 +21,11 @@ const AssessmentCard = ({
   return (
     <Card className={classes.item}>
       <CardMedia className={classes.media}>
-        <img src={image} alt="Assessment Assigned" />
+        <img
+          src={image}
+          alt="Assessment Company Logo"
+          style={{ maxWidth: "100%", maxHeight: "100%" }}
+        />
       </CardMedia>
       <CardContent>
         <Typography component="p" variant="h6">
