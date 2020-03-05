@@ -175,7 +175,7 @@ class AssessmentModules extends Component {
     let temp_module_data = [];
     // user played all the games check
     if (
-      currentAssessment.game_play_order.length ==
+      currentAssessment.game_play_order.length ===
       currentAssessment.complete_games.length
     ) {
       game_to_unlock = "";
@@ -254,7 +254,27 @@ class AssessmentModules extends Component {
 
   startModule = () => {
     console.log("Called from Modal Window Proceed To Game");
-    this.props.history.push("/game");
+    const { currentAssessment } = this.props.rootTree.user;
+    if (currentAssessment.current_game !== "") {
+      let temp_module_source = module_data[currentAssessment.current_game]["module_source"];
+      console.log("AssessmentModules -> startModule -> temp_module_source", temp_module_source)
+
+      switch (temp_module_source) {
+        case "unity":
+          this.props.history.push("/game");
+          break;
+        case "react":
+          if (currentAssessment.current_game === "mob-20") {
+            this.props.history.push("/language_test");
+          } else {
+            //
+          }
+          break;
+        default:
+          break;
+      }
+    }
+
     this.modalRef.handleClose();
   };
 
@@ -365,7 +385,7 @@ class AssessmentModules extends Component {
             {/* Assessments are timed. Try to finish all the assessment alloted to
             you with in the time. */}
             Your assessment will expire in{" "}
-            <b>{this.state.expiryTime != -1 ? this.state.expiryTime : "--"}</b>
+            <b>{this.state.expiryTime !== -1 ? this.state.expiryTime : "--"}</b>
           </Box>
         </Typography>
         <br />
@@ -378,7 +398,7 @@ class AssessmentModules extends Component {
                 assessmentName={Game.module_name}
                 card_status={Game.module_status}
                 is_module_supported={
-                  Game.module_source === "unity" ? true : false
+                  Game.module_supported
                 }
                 // classes={classes}
                 onPress={() => this.handleClickOpen(index)}

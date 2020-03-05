@@ -138,6 +138,11 @@ const apiCall = {
       headers: this.getHeaders()
     });
   },
+  getLanguageTestData() {
+    return apiClient.get("/audio_test/", {
+      headers: this.getHeaders()
+    });
+  },
   getHeaders() {
     return {
       //"Accept": "application/json",

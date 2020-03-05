@@ -27,6 +27,7 @@ import NotFound from "../containers/NotFound";
 import AssessmentHomeContainer from "../containers/assessmentsContainer/AssessmentHomeContainer";
 import SetNewPasswordContainer from "../containers/authContainers/SetNewPasswordContainer";
 import ReactUnityBridge from "../containers/assessmentsModulesContainer/reactUnityBridge";
+import AudioTest from "../audioModule/AudioTest";
 //import { registerNav } from "../services/navigation";
 // Although the page does not ever refresh, notice how
 // React Router keeps the URL up to date as you navigate
@@ -79,6 +80,7 @@ const AppRoutes = forwardRef((props, ref) => {
         <PrivateRoute path="/about" component={AboutContainer} />
         <PrivateRoute path="/am" component={AssessmentModules} />
         <PrivateRoute path="/game" component={ReactUnityBridge} />
+        <PrivateRoute path="/language_test" component={AudioTest} />
         {/* <Route path="/fb" component={() => window.location = 'http://google.com'} /> */}
 
         {/* <Redirect from="/" to="/login" /> */}

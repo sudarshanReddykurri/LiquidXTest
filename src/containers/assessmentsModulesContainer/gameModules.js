@@ -5,7 +5,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Space_Race.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-02": {
     module_name: "ODD ONE OUT",
@@ -13,7 +14,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Odd_One_Out.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-03": {
     module_name: "FLASH",
@@ -21,7 +23,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Flash.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-04": {
     module_name: "RAPID RECALL",
@@ -29,7 +32,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Rapid_Recall.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-05": {
     module_name: "ATTENTION NINJA",
@@ -37,7 +41,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Attention_Ninja.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-06": {
     module_name: "TURN IT OUT",
@@ -45,7 +50,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Turn_It.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-07": {
     module_name: "STROOP SHAPES",
@@ -53,7 +59,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Stroop_Shapes.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-08": {
     module_name: "SPOT ON",
@@ -61,7 +68,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Spot_On.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-09": {
     module_name: "CORNER STONE",
@@ -69,7 +77,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Corner_Stone.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-10": {
     module_name: "EXPRESS AGENT",
@@ -77,7 +86,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Express_Agent.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-11": {
     module_name: "DR SINGH'S MOTIVES",
@@ -85,7 +95,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Motives.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-12": {
     module_name: "VIDEO INTERVIEW",
@@ -93,7 +104,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Video_Interview.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "react"
+    module_source: "react",
+    module_supported: false
   },
   "mob-13": {
     module_name: "PEAQ - 1",
@@ -101,7 +113,8 @@ export const Modules = {
     //module_icon_path: require("../Assets/GameIcons/Peak.png"),
     module_status: "locked",
     module_state: "online",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-14": {
     module_name: "PEAQ - 2",
@@ -109,7 +122,8 @@ export const Modules = {
     //module_icon_path: require("../Assets/GameIcons/Peak.png"),
     module_status: "locked",
     module_state: "online",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-15": {
     module_name: "PEAQ - 3",
@@ -117,7 +131,8 @@ export const Modules = {
     //module_icon_path: require("../Assets/GameIcons/Peak.png"),
     module_status: "locked",
     module_state: "online",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-16-l1": {
     module_name: "EXPRESS AGENT",
@@ -125,7 +140,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Express_Agent.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-16-l2": {
     module_name: "EXPRESS AGENT",
@@ -133,7 +149,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Express_Agent.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-16-l3": {
     module_name: "EXPRESS AGENT",
@@ -141,7 +158,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Express_Agent.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-17": {
     module_name: "BRAIN SWITCH",
@@ -149,7 +167,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Brain_Switch.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-18": {
     module_name: "ARITHMA",
@@ -157,7 +176,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Arithma.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-19": {
     module_name: "FREIGHT TRANSPORT",
@@ -165,7 +185,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Freight_Transport.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   },
   "mob-20": {
     module_name: "LANGUAGE TEST",
@@ -173,7 +194,8 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Language_Test.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "react"
+    module_source: "react",
+    module_supported: true
   },
   "mob-21": {
     module_name: "CODE TEST",
@@ -181,6 +203,7 @@ export const Modules = {
     module_icon_path: require("../../assets/Game_Icons/Code_Test.png"),
     module_status: "locked",
     module_state: "offline",
-    module_source: "unity"
+    module_source: "unity",
+    module_supported: true
   }
 };
