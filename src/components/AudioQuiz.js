@@ -141,12 +141,14 @@ class AudioQuiz extends Component {
               }}
             >
               <Typography
+                component="div"
                 variant="body2"
                 style={{ color: "#000", marginRight: 10 }}
               >
                 Time left to answer
               </Typography>
               <Typography
+                component="div"
                 style={{
                   marginTop: 0
                 }}
@@ -156,6 +158,7 @@ class AudioQuiz extends Component {
               </Typography>
             </div>
             <Typography
+              component="div"
               variant="body2"
               style={{ color: "#000", marginTop: 20 }}
             >
@@ -228,16 +231,18 @@ class AudioQuiz extends Component {
                         {_this.capitalize(question_options[item])}
                       </Button>
                       <br />
-                    </Box>                                                                                                     
+                    </Box>
                   );
                 }
               );
               return (
                 <Paper
-                  style={{ margin: 20, paddingTop: 20, paddingBottom: 20 }} key={"paper"+"-"+questionIndex}
+                  style={{ margin: 20, paddingTop: 20, paddingBottom: 20 }}
+                  key={"paper" + "-" + questionIndex}
                 >
                   <Box align="center">
                     <Typography
+                      component="div"
                       variant="body2"
                       style={{
                         color: "#000",

@@ -208,7 +208,7 @@ class AssessmentHomeContainer extends Component {
                 </Box>
               </Typography>
               <br />
-              {this.state.totalAssessments >= 2 && (
+              {/* {this.state.totalAssessments >= 2 && ( */}
                 <Box align="right">
                   <FormControl className={classes.formControl}>
                     <InputLabel id="demo-controlled-open-select-label">
@@ -235,7 +235,7 @@ class AssessmentHomeContainer extends Component {
                     </Select>
                   </FormControl>
                 </Box>
-              )}
+              {/* )} */}
               <Grid
                 container
                 spacing={24}

@@ -192,7 +192,8 @@ class AudioTest extends Component {
       submit_time: ""
     };
     this.game_name = "mob-20";
-
+    this.isDataUploadedSuccessfully = false;
+    this.uploadCounter = 0;
     this.alertRef = null;
     this.onSubmitResponses = this.onSubmitResponses.bind(this);
 
@@ -345,8 +346,46 @@ class AudioTest extends Component {
         // Reset the variables
         console.log("The End");
         // Need to refactor this code
+        this.pushGameDataToCloud();
         this.gotoLevel("game_end_screen");
       }
+    }
+  }
+
+  pushGameDataToCloud() {
+    const { user } = this.props.rootTree;
+    let gameData = {
+      name: this.game_name,
+      data: JSON.stringify(this.dump_json)
+    };
+    console.log("Workbench -> onFinish -> gameData", gameData);
+    if (user.accessType === "superaccess") {
+      // For super user we are setting the data upload success manually
+      this.isDataUploadedSuccessfully = true;
+    } else {
+      apiCall
+        .gameDataUpload(JSON.stringify(gameData))
+        .then(res => {
+          console.log("AudioTest -> pushGameDataToCloud -> res", res);
+          if (res.status === 200) {
+            console.log("game data successfully uploaded");
+            user.currentAssessment.add_to_complete_games(game_index);
+            user.currentAssessment.remove_from_games_to_play(game_index);
+            user.currentAssessment.update_current_game("");
+            this.isDataUploadedSuccessfully = true;
+            // this.props.history.goBack();
+          } else {
+            if (this.uploadCounter <= 1) {
+              this.pushGameDataToCloud();
+            } else {
+              console.log("Error while uploading the data");
+            }
+          }
+        })
+        .catch(err => {
+          console.log("TCL: App -> componentDidMount -> err", err);
+          console.log(err.response);
+        });
     }
   }
 
@@ -433,22 +472,9 @@ class AudioTest extends Component {
 
   onFinish() {
     console.log("The End");
-    let gameData = {
-      name: this.game_name,
-      data: this.game_data
-    };
-    console.log("Workbench -> onFinish -> gameData", gameData);
-    apiCall
-      .gameDataUpload(JSON.stringify(gameData))
-      .then(res => {
-        if (res.status === 200) {
-          console.log("game or pause data successfully uploaded");
-        }
-      })
-      .catch(err => {
-        console.log("TCL: App -> componentDidMount -> err", err);
-        console.log(err.response);
-      });
+    if (this.isDataUploadedSuccessfully) {
+      this.props.history.goBack();
+    }
   }
 
   onSpellingSubmitted() {
@@ -464,7 +490,7 @@ class AudioTest extends Component {
     // Record data here
     //save
     this.game_data.q_id = [this.state.level_01[question_counter]["q_id"]];
-    this.game_data.user_response = [userTextResponse];
+    this.game_data.user_response = [userTextResponse.trim()];
     this.game_data.submit_time = this.getUnixTimeinMilliSeconds();
     this.pushDataToDumpjson(Object.assign({}, this.game_data));
     this.resetGameData();
@@ -689,6 +715,12 @@ class AudioTest extends Component {
       case screens.AUDIOFETCH:
       case screens.INITIAL:
       case screens.AUDIOCHECK:
+        this.trainingSetupAudio();
+        // setTimeout(() => {
+        //   this.handlePlay();
+        // }, 1000);
+        
+        break;
       case screens.INSTRUCTION_01: // This will get called only once
         this.setState({
           question_counter: 0,
@@ -1183,6 +1215,7 @@ class AudioTest extends Component {
                       <Input
                         placeholder="Enter your answer here"
                         inputProps={{ "aria-label": "description" }}
+                        autoFocus = {true}
                         style={{
                           marginTop: 80,
                           width: "100%"

@@ -67,8 +67,8 @@ const styles = theme => ({
     margin: theme.spacing(3, 0, 2)
   },
   processText: {
-    color: '#2196f3',
-  },
+    color: "#2196f3"
+  }
 });
 
 const validationSchema = Yup.object().shape({
@@ -142,161 +142,161 @@ class SignupContainer extends Component {
               this.alertRef = alertRef;
             }}
           />
-          <div className={classes.paper}>
+          <div>
             <img
               src={perspectAILogo}
               alt="PerspectAI Logo"
               class={classes.avatar}
             />
-            <Typography component="h1" variant="h5">
+            <Typography component="h1" variant="h5" style={{marginBottom: 10}}>
               Sign up
             </Typography>
             {/* <form className={classes.form} noValidate> */}
-              <Formik
-                initialValues={{
-                  firstName: "",
-                  lastName: "",
-                  email: "",
-                  mobileNumber: "",
-                  licenseKey: "",
-                  password: "",
-                  confirmPassword: "",
-                  dateOfBirth: "",
-                  gender: "male"
-                }}
-                validationSchema={validationSchema}
-                onSubmit={(values, actions) => {
-                  let payload = {
-                    firstName: values.firstName,
-                    lastName: values.lastName,
-                    email_id: values.email,
-                    gender: values.gender,
-                    mobile: values.mobileNumber,
-                    passwd: values.confirmPassword,
-                    dob: moment(values.dateOfBirth).format("YYYY-MM-DD"),
-                    Version: "2.01.01",
-                    key: values.licenseKey
-                  };
-                  actions.setFieldTouched("firstName");
-                  actions.setFieldTouched("lastName");
-                  actions.setFieldTouched("email");
-                  actions.setFieldTouched("mobileNumber");
-                  actions.setFieldTouched("licenseKey");
-                  actions.setFieldTouched("password");
-                  actions.setFieldTouched("confirmPassword");
-                  actions.setFieldTouched("dateOfBirth");
-                  actions.setFieldTouched("gender");
-                  actions.setSubmitting(true);
-                  let license_data_payload = {
-                    email_id: values.email,
-                    key: values.licenseKey
-                  };
-                  apiCall
-                    .licenceVerify(license_data_payload)
-                    .then(res => {
-                      console.log("TCL: App -> componentDidMount -> rsp", res);
-                      if (res.status === 200) {
-                        apiCall
-                          .userSignUp(payload)
-                          .then(res => {
-                            console.log(
-                              "TCL: App -> componentDidMount -> rsp",
-                              res
-                            );
-                            // actions.setSubmitting(false);
-                            if (res.status === 200) {
-                              let device_data = {
-                                device_id: "web",
-                                device_model: "web",
-                                screen_size: "120*240",
-                                ram: "web",
-                                login_id: "",
-                                passwd: "",
-                                os_version: "web",
-                                screen_dpi: "web",
-                                version: "2.01.10",
-                                fcm_token: ""
-                              };
-                              device_data.login_id = values.email;
-                              device_data.passwd = values.confirmPassword;
-                              apiCall
-                                .userLogin(device_data)
-                                .then(res => {
+            <Formik
+              initialValues={{
+                firstName: "",
+                lastName: "",
+                email: "",
+                mobileNumber: "",
+                licenseKey: "",
+                password: "",
+                confirmPassword: "",
+                dateOfBirth: "",
+                gender: "male"
+              }}
+              validationSchema={validationSchema}
+              onSubmit={(values, actions) => {
+                let payload = {
+                  firstName: values.firstName,
+                  lastName: values.lastName,
+                  email_id: values.email,
+                  gender: values.gender,
+                  mobile: values.mobileNumber,
+                  passwd: values.confirmPassword,
+                  dob: moment(values.dateOfBirth).format("YYYY-MM-DD"),
+                  Version: "2.01.01",
+                  key: values.licenseKey
+                };
+                actions.setFieldTouched("firstName");
+                actions.setFieldTouched("lastName");
+                actions.setFieldTouched("email");
+                actions.setFieldTouched("mobileNumber");
+                actions.setFieldTouched("licenseKey");
+                actions.setFieldTouched("password");
+                actions.setFieldTouched("confirmPassword");
+                actions.setFieldTouched("dateOfBirth");
+                actions.setFieldTouched("gender");
+                actions.setSubmitting(true);
+                let license_data_payload = {
+                  email_id: values.email,
+                  key: values.licenseKey
+                };
+                apiCall
+                  .licenceVerify(license_data_payload)
+                  .then(res => {
+                    console.log("TCL: App -> componentDidMount -> rsp", res);
+                    if (res.status === 200) {
+                      apiCall
+                        .userSignUp(payload)
+                        .then(res => {
+                          console.log(
+                            "TCL: App -> componentDidMount -> rsp",
+                            res
+                          );
+                          // actions.setSubmitting(false);
+                          if (res.status === 200) {
+                            let device_data = {
+                              device_id: "web",
+                              device_model: "web",
+                              screen_size: "120*240",
+                              ram: "web",
+                              login_id: "",
+                              passwd: "",
+                              os_version: "web",
+                              screen_dpi: "web",
+                              version: "2.01.10",
+                              fcm_token: ""
+                            };
+                            device_data.login_id = values.email;
+                            device_data.passwd = values.confirmPassword;
+                            apiCall
+                              .userLogin(device_data)
+                              .then(res => {
+                                console.log(
+                                  "TCL: App -> componentDidMount -> rsp",
+                                  res
+                                );
+                                actions.setSubmitting(false);
+                                if (res.status == 200) {
+                                  const { rootTree } = this.props;
+                                  if (!rootTree) return null;
+                                  let userData = res.data.data;
                                   console.log(
-                                    "TCL: App -> componentDidMount -> rsp",
-                                    res
+                                    "TCL: LoginContainer -> render -> userData",
+                                    userData
                                   );
-                                  actions.setSubmitting(false);
-                                  if (res.status == 200) {
-                                    const { rootTree } = this.props;
-                                    if (!rootTree) return null;
-                                    let userData = res.data.data;
-                                    console.log(
-                                      "TCL: LoginContainer -> render -> userData",
-                                      userData
-                                    );
 
-                                    rootTree.user.updateUser(
-                                      userData.userId,
-                                      userData.fullName,
-                                      userData.emailId,
-                                      userData.gender,
-                                      parseInt(userData.mobileNo),
-                                      userData.DOB,
-                                      userData.registrationImages,
-                                      "",
-                                      userData.acc_lvl
-                                    );
+                                  rootTree.user.updateUser(
+                                    userData.userId,
+                                    userData.fullName,
+                                    userData.emailId,
+                                    userData.gender,
+                                    parseInt(userData.mobileNo),
+                                    userData.DOB,
+                                    userData.registrationImages,
+                                    "",
+                                    userData.acc_lvl
+                                  );
 
-                                    authService.setToken(userData.auth_token);
-                                    this.props.history.push("/home");
-                                    //jumpTo("/home");
-                                  }
-                                })
-                                .catch(err => {
-                                  console.log(
-                                    "TCL: App -> componentDidMount -> err",
-                                    err
-                                  );
-                                  console.log(err.response);
-                                  const { status, data } = err.response;
-                                  this.alertRef.handleOpenDialog(
-                                    `Authentication Failed`,
-                                    data.message
-                                  );
-                                  actions.setSubmitting(false);
-                                });
-                              // this.props.history.push("/login");
-                            }
-                          })
-                          .catch(err => {
-                            console.log(
-                              "TCL: App -> componentDidMount -> err",
-                              err
-                            );
-                            console.log(err.response);
-                            const { status, data } = err.response;
-                            this.alertRef.handleOpenDialog(
-                              `Failed processing request`,
-                              data.message
-                            );
-                            actions.setSubmitting(false);
-                          });
-                      }
-                    })
-                    .catch(err => {
-                      console.log("TCL: App -> componentDidMount -> err", err);
-                      console.log(err.response);
-                      const { status, data } = err.response;
-                      this.alertRef.handleOpenDialog(
-                        `Failed processing request`,
-                        data.message
-                      );
-                      actions.setSubmitting(false);
-                    });
-                }}
-                render={formikProps => (
-                  <React.Fragment>
+                                  authService.setToken(userData.auth_token);
+                                  this.props.history.push("/home");
+                                  //jumpTo("/home");
+                                }
+                              })
+                              .catch(err => {
+                                console.log(
+                                  "TCL: App -> componentDidMount -> err",
+                                  err
+                                );
+                                console.log(err.response);
+                                const { status, data } = err.response;
+                                this.alertRef.handleOpenDialog(
+                                  `Authentication Failed`,
+                                  data.message
+                                );
+                                actions.setSubmitting(false);
+                              });
+                            // this.props.history.push("/login");
+                          }
+                        })
+                        .catch(err => {
+                          console.log(
+                            "TCL: App -> componentDidMount -> err",
+                            err
+                          );
+                          console.log(err.response);
+                          const { status, data } = err.response;
+                          this.alertRef.handleOpenDialog(
+                            `Failed processing request`,
+                            data.message
+                          );
+                          actions.setSubmitting(false);
+                        });
+                    }
+                  })
+                  .catch(err => {
+                    console.log("TCL: App -> componentDidMount -> err", err);
+                    console.log(err.response);
+                    const { status, data } = err.response;
+                    this.alertRef.handleOpenDialog(
+                      `Failed processing request`,
+                      data.message
+                    );
+                    actions.setSubmitting(false);
+                  });
+              }}
+              render={formikProps => (
+                <React.Fragment>
                   <Form>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
@@ -539,11 +539,15 @@ class SignupContainer extends Component {
                         <Typography variant="body2" component="h2" gutterBottom>
                           By signing up you agree to our terms and conditions
                         </Typography>
-                        { formikProps.isSubmitting &&
-                        <Typography variant="body2" component="body2" className={classes.processText}>
-                          Please wait while we are processing your request
-                        </Typography>
-                        }
+                        {formikProps.isSubmitting && (
+                          <Typography
+                            variant="body2"
+                            component="body2"
+                            className={classes.processText}
+                          >
+                            Please wait while we are processing your request
+                          </Typography>
+                        )}
                       </Grid>
                     </Grid>
                     <Button
@@ -556,17 +560,17 @@ class SignupContainer extends Component {
                     >
                       Sign Up
                     </Button>
-                    </Form>
-                  </React.Fragment>
-                )}
-              />
-              <Grid container justify="flex-end">
-                <Grid item>
-                  <Link to="/login" variant="body2">
-                    Already have an account? Sign in
-                  </Link>
-                </Grid>
+                  </Form>
+                </React.Fragment>
+              )}
+            />
+            <Grid container justify="flex-end">
+              <Grid item>
+                <Link to="/login" variant="body2">
+                  Already have an account? Sign in
+                </Link>
               </Grid>
+            </Grid>
             {/* </form> */}
           </div>
           <br />

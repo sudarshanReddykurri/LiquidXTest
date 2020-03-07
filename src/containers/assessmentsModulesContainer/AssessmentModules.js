@@ -1,6 +1,7 @@
 import React, { Component, Fragment } from "react";
 import {
   AppBar,
+  Breadcrumbs,
   Button,
   Box,
   Card,
@@ -256,8 +257,12 @@ class AssessmentModules extends Component {
     console.log("Called from Modal Window Proceed To Game");
     const { currentAssessment } = this.props.rootTree.user;
     if (currentAssessment.current_game !== "") {
-      let temp_module_source = module_data[currentAssessment.current_game]["module_source"];
-      console.log("AssessmentModules -> startModule -> temp_module_source", temp_module_source)
+      let temp_module_source =
+        module_data[currentAssessment.current_game]["module_source"];
+      console.log(
+        "AssessmentModules -> startModule -> temp_module_source",
+        temp_module_source
+      );
 
       switch (temp_module_source) {
         case "unity":
@@ -374,6 +379,21 @@ class AssessmentModules extends Component {
     //const { games_to_play } = this.props.rootTree.user.currentAssessment;
     return (
       <Fragment>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link
+            color="primary"
+            className={classes.bread_crumb_link}
+            // href="/home"
+            onClick={event => {
+              event.preventDefault();
+              console.log("Go to assessments page");
+              this.props.history.push("/home");
+              // this.props.history.goBack();
+            }}
+          >
+            {"< back"}
+          </Link>
+        </Breadcrumbs>
         <Typography align="center" component="h1">
           <Box fontWeight="fontWeightBold" fontSize={24}>
             Assigned Modules
@@ -397,9 +417,7 @@ class AssessmentModules extends Component {
                 icon_path={Game.module_icon_path}
                 assessmentName={Game.module_name}
                 card_status={Game.module_status}
-                is_module_supported={
-                  Game.module_supported
-                }
+                is_module_supported={Game.module_supported}
                 // classes={classes}
                 onPress={() => this.handleClickOpen(index)}
               ></GameCard>
@@ -536,6 +554,12 @@ const styles = theme => ({
     flexGrow: 1,
     justifyContent: "center",
     margin: "auto"
+  },
+  bread_crumb_link: {
+    "&:hover": {
+      cursor: "pointer",
+      // color: "#000"
+    }
   },
   /*  footer: {
     backgroundColor: theme.palette.background.paper,
