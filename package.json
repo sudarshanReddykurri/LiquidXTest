@@ -35,7 +35,10 @@
     "react-unity-webgl": "^7.1.9",
     "simplebar-react": "^2.1.0",
     "uuid": "^3.3.3",
-    "yup": "^0.28.0"
+    "yup": "^0.28.0",
+    "blob-to-buffer": "^1.2.8",
+    "recordrtc": "^5.5.9",
+    "to-arraybuffer": "^1.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
