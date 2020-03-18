@@ -1,5 +1,7 @@
 // 1. Localhost: In Localhost Chrome Browser asking permission only one time and Firefox every pageload.
 // 2. HTTPS: Both Browsers Chrome and Firefox asking permission only one time.
+
+// https://javascript.info/blob
 import React, { Component } from "react";
 // import logo from "./logo.svg";
 // import "./App.css";
@@ -22,6 +24,10 @@ import {
 } from "@material-ui/core";
 import StopIcon from "@material-ui/icons/Stop";
 import RecordRTC from "recordrtc";
+import NetworkDetector from "../hoc/NetworkDetector";
+import InternetCheck from "../components/internetCheck";
+import apiCall from "../services/apiCalls/apiService";
+// const speedTest = require("speedtest-net");
 
 let recordRTC;
 const mediaConstraints = { video: true, audio: true };
@@ -167,13 +173,24 @@ class VideoInterview extends Component {
       ],
       slideCounter: 0,
       audioDeviceIds: [],
-      videoDeviceIds: []
+      videoDeviceIds: [],
+      questions_data: [],
+      interview_duration: 3,
+      question_counter: 0,
+      renderVideoInterview: false,
+      question_timer: 0,
+      answer_timer: 0
     };
+    this.unSubscribeTimer = null;
+    this.unSubscribeRecordingTimer = null;
+    this.localMediaStream = null;
 
     this.clearAndStopVideoRecording = this.clearAndStopVideoRecording.bind(
       this
     );
     this.StartVideoRecording = this.StartVideoRecording.bind(this);
+    this.startStream = this.startStream.bind(this);
+    this.ClearRecordingTimers = this.ClearRecordingTimers.bind(this);
   }
 
   onGuidelinesPress() {
@@ -186,13 +203,68 @@ class VideoInterview extends Component {
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    // try {
+    //   console.log(await speedTest());
+    // } catch (err) {
+    //   console.log(err.message);
+    // } finally {
+    //   process.exit(0);
+    // }
+
     if (!hasGetUserMedia()) {
       alert("getUserMedia() is not supported in your browser");
       return;
     } else {
-      this.startStream();
+      apiCall
+        .getInterviewQuestionsData("sudarshankurri19900101_01")
+        .then(res => {
+          console.log("Workbench -> componentDidMount -> res", res);
+          if (res.data.message === "Success") {
+            console.log(
+              "VideoInterview -> componentDidMount -> res.data",
+              res.data
+            );
+
+            this.setState(
+              {
+                questions_data: res.data["questions_list"]
+              },
+              () => {
+                console.log(
+                  "VideoInterview -> componentDidMount -> questions_data",
+                  this.state.questions_data[0]["question"]
+                );
+                let temp_alloted_time = 0;
+                this.state.questions_data.map((ques, index) => {
+                  temp_alloted_time = temp_alloted_time + ques.alotted_time;
+                });
+                this.setState(
+                  {
+                    interview_duration: temp_alloted_time / 60,
+                    renderVideoInterview: true
+                  },
+                  () => {
+                    // Testing
+                    //this.gotoLevel("question_screen");
+                  }
+                );
+              }
+            );
+          }
+        });
+      //this.startStream();
       //this.hasCamAndMicrophone();
+    }
+  }
+
+  componentWillUnmount() {
+    // Clear the subscribers or listeners
+    if (this.unSubscribeTimer) {
+      clearInterval(this.unSubscribeTimer);
+    }
+    if (this.unSubscribeRecordingTimer) {
+      clearTimeout(this.unSubscribeRecordingTimer);
     }
   }
 
@@ -250,13 +322,31 @@ class VideoInterview extends Component {
     });
   }
 
+  //ajax calling
+  // uploadBlob(blob) {
+  //   var formData = new FormData();
+  //   formData.append("video-blob", blob);
+  //   formData.append("video-filename", "demo.mp4");
+  // }
+
   startStream() {
+    let _this = this;
     window.navigator.getUserMedia(
       mediaConstraints,
-      localMediaStream => {
+      stream => {
+        this.localMediaStream = stream;
         const video = this.refs.video;
-        video.srcObject = localMediaStream;
-        var mediaStreamTrack = localMediaStream.getVideoTracks()[0];
+        // localMediaStream = stream;
+        video.srcObject = this.localMediaStream;
+        video.onloadedmetadata = function(e) {
+          console.log("App -> video.onloadedmetadata -> e", e);
+          // if (this.state.currentScreenName === "recording_screen") {
+
+          _this.StartRecordingAnswerTimer();
+          _this.StartVideoRecording(_this.state.answer_timer, stream);
+        };
+
+        var mediaStreamTrack = this.localMediaStream.getVideoTracks()[0];
         // localMediaStream.getAudioTracks()[0];
         if (typeof mediaStreamTrack != "undefined") {
           mediaStreamTrack.onended = function() {
@@ -266,9 +356,8 @@ class VideoInterview extends Component {
         } else {
           errorMessage("Permission denied!");
         }
-        video.onloadedmetadata = function(e) {
-          console.log("App -> video.onloadedmetadata -> e", e);
-        };
+
+        // };
       },
       error => {
         var message;
@@ -293,21 +382,48 @@ class VideoInterview extends Component {
     );
   }
 
-  StartVideoRecording() {
-    window.navigator.mediaDevices
-      .getUserMedia(mediaConstraints)
-      .then(stream => {
-        console.log("successCallback -> stream", stream);
-        recordRTC = RecordRTC(stream, recordingOptions);
-        recordRTC.startRecording();
-        // after X amount of seconds clear the timer interval and stop recording
-        setTimeout(() => {
-          this.clearAndStopVideoRecording();
-        }, 6000);
-      })
-      .catch(error => {
-        console.log("errorCallback -> error", error);
-      });
+  StartRecordingAnswerTimer() {
+    this.unSubscribeTimer = setInterval(() => {
+      if (this.state.answer_timer <= 0) {
+        this.ClearRecordingTimers();
+      } else {
+        this.setState({
+          answer_timer: this.state.answer_timer - 1
+        });
+      }
+    }, 1000);
+  }
+
+  StartVideoRecording(alloted_time, stream) {
+    console.log("successCallback -> stream", stream);
+    recordRTC = RecordRTC(stream, recordingOptions);
+    recordRTC.startRecording();
+    // after X amount of seconds clear the timer interval and stop recording
+    this.unSubscribeRecordingTimer = setTimeout(() => {
+      this.clearAndStopVideoRecording();
+    }, alloted_time * 1000);
+  }
+
+  ClearRecordingTimers() {
+    if (this.unSubscribeRecordingTimer) {
+      clearTimeout(this.unSubscribeRecordingTimer);
+      this.clearAndStopVideoRecording();
+    }
+  }
+
+  stopAndRemoveTrack(mediaStream) {
+    return function(track) {
+      track.stop();
+      mediaStream.removeTrack(track);
+    };
+  }
+
+  stopMediaStream(mediaStream) {
+    if (!mediaStream) {
+      return;
+    }
+
+    mediaStream.getTracks().forEach(this.stopAndRemoveTrack(mediaStream));
   }
 
   clearAndStopVideoRecording() {
@@ -319,6 +435,34 @@ class VideoInterview extends Component {
             audioVideoWebMURL
           );
 
+          const video = this.refs.video;
+          video.pause();
+          video.srcObject = null;
+          video.src = "";
+          if (this.localMediaStream) {
+            console.log(
+              "VideoInterview -> clearAndStopVideoRecording -> this.localMediaStream",
+              this.localMediaStream
+            );
+            this.stopMediaStream(this.localMediaStream);
+            // Next Level
+            if (
+              this.state.question_counter <
+              this.state.questions_data.length - 1
+            ) {
+              this.setState(
+                {
+                  question_counter: this.state.question_counter + 1
+                },
+                () => {
+                  this.gotoLevel("question_screen");
+                }
+              );
+            } else {
+              this.gotoLevel("uploading_screen");
+            }
+          }
+
           let blob = recordRTC.getBlob();
           console.log("App -> btnStopRecording -> blob", blob);
 
@@ -326,6 +470,10 @@ class VideoInterview extends Component {
             data: blob,
             id: Math.floor(Math.random() * 90000) + 10000
           };
+
+          // if (this.unSubscribeRecordingTimer) {
+          //   clearTimeout(this.unSubscribeRecordingTimer);
+          // }
 
           // toBuffer(blob, (err, buffer) => {
           //   if (err) throw err;
@@ -343,8 +491,19 @@ class VideoInterview extends Component {
     }
   }
 
+  onFinish() {
+    console.log("The End");
+  }
+
   gotoLevel(level_name) {
     console.log("TCL: gotoLevel -> level_name", level_name);
+    if (this.unSubscribeTimer) {
+      clearInterval(this.unSubscribeTimer);
+    }
+    // this.setState({
+    //   question_timer: 0,
+    //   answer_timer: 0
+    // });
     switch (level_name) {
       case screens.INITIAL:
         break;
@@ -357,8 +516,73 @@ class VideoInterview extends Component {
       case screens.INSTRUCTION_SCREEN:
         break;
       case screens.QUESTION_SCREEN:
+        let temp_question_time = this.state.questions_data[
+          this.state.question_counter
+        ]["prep_time"];
+        console.log(
+          "VideoInterview -> gotoLevel -> temp_question_time",
+          temp_question_time
+        );
+        this.setState(
+          {
+            question_timer: temp_question_time
+          },
+          () => {
+            console.log(
+              "VideoInterview -> gotoLevel -> temp_question_time",
+              this.state.question_timer
+            );
+            this.unSubscribeTimer = setInterval(() => {
+              if (this.state.question_timer <= 0) {
+                clearInterval(this.unSubscribeTimer);
+                this.gotoLevel("recording_screen");
+              } else {
+                this.setState({
+                  question_timer: this.state.question_timer - 1
+                });
+              }
+            }, 1000);
+          }
+        );
         break;
       case screens.RECORDING_SCREEN:
+        let temp_answer_time = this.state.questions_data[
+          this.state.question_counter
+        ]["alotted_time"];
+
+        this.setState(
+          {
+            answer_timer: temp_answer_time
+          },
+          () => {
+            this.startStream();
+            // this.unSubscribeTimer = setInterval(() => {
+            //   if (this.state.answer_timer <= 0) {
+            //     clearInterval(this.unSubscribeTimer);
+
+            //     if (
+            //       this.state.question_counter <=
+            //       this.state.questions_data.length - 1
+            //     ) {
+            //       this.setState(
+            //         {
+            //           question_counter: this.state.question_counter + 1
+            //         },
+            //         () => {
+            //           this.gotoLevel("question_screen");
+            //         }
+            //       );
+            //     } else {
+            //       this.gotoLevel("uploading_screen");
+            //     }
+            //   } else {
+            //     this.setState({
+            //       answer_timer: this.state.answer_timer - 1
+            //     });
+            //   }
+            // }, 1000);
+          }
+        );
         break;
       case screens.UPLOADING_SCREEN:
         break;
@@ -537,7 +761,8 @@ class VideoInterview extends Component {
                       </Typography>
                     </Box>
                     <br />
-                    <Box fontWeight={400}
+                    <Box
+                      fontWeight={400}
                       style={{
                         height: 100,
                         width: 100,
@@ -550,7 +775,7 @@ class VideoInterview extends Component {
                         fontSize: 24
                       }}
                     >
-                        {this.state.audioDeviceIds.length}
+                      {this.state.audioDeviceIds.length}
                     </Box>
                     <br />
                     <br />
@@ -565,7 +790,8 @@ class VideoInterview extends Component {
                       </Typography>
                     </Box>
                     <br />
-                    <Box fontWeight={400}
+                    <Box
+                      fontWeight={400}
                       style={{
                         height: 100,
                         width: 100,
@@ -578,7 +804,7 @@ class VideoInterview extends Component {
                         fontSize: 24
                       }}
                     >
-                        {this.state.videoDeviceIds.length}
+                      {this.state.videoDeviceIds.length}
                     </Box>
                   </Box>
                 </Box>
@@ -718,9 +944,289 @@ class VideoInterview extends Component {
           </Container>
         );
       case screens.INSTRUCTION_SCREEN:
-        return <div></div>;
+        return (
+          <Container
+            style={{
+              height: "100%",
+              padding: 0
+            }}
+          >
+            <Box
+              className={[classes.flexColumnCenter, classes.flexFullHeight]}
+              style={{
+                flex: 5
+              }}
+            >
+              <Box
+                className={[classes.flexColumnCenter, classes.flexFullWidth]}
+                style={{
+                  flex: 5,
+                  textAlign: "center"
+                }}
+              >
+                <Box
+                  style={{
+                    marginTop: -50
+                  }}
+                >
+                  <Paper
+                    style={{
+                      paddingTop: 20,
+                      PaddingBottom: 20,
+                      width: 400,
+                      borderRadius: 10,
+                      backgroundColor: "#e8e8e8"
+                    }}
+                  >
+                    <Typography
+                      align="center"
+                      component="div"
+                      variant="h6"
+                      style={{ color: "#000" }}
+                    >
+                      Company Name
+                    </Typography>
+                    <div
+                      style={{
+                        // marginTop: 10,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
+                      }}
+                    >
+                      <Typography
+                        align="center"
+                        component="div"
+                        variant="body1"
+                        style={{ color: "#000", marginRight: 10 }}
+                      >
+                        Loop Reality
+                      </Typography>
+                    </div>
+                    <br />
+                  </Paper>
+
+                  <br />
+                  <br />
+                  <br />
+                  <br />
+
+                  <Box fontWeight={800}>
+                    <Typography
+                      component="div"
+                      style={{
+                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
+                        textAlign: "left"
+                      }}
+                    >
+                      Total Interview Duration: {this.state.interview_duration}{" "}
+                      Mins
+                    </Typography>
+                  </Box>
+                  <br />
+                  <Paper
+                    style={{
+                      width: 400,
+                      borderRadius: 10,
+                      backgroundColor: "#e8e8e8"
+                    }}
+                  >
+                    <Typography
+                      align="center"
+                      component="div"
+                      variant="body1"
+                      style={{ color: "#000", textAlign: "left", padding: 20 }}
+                    >
+                      You will have 30 seconds to prepare and different response
+                      time to answer each question. Please try to complete your
+                      response in time.
+                    </Typography>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        justifyContent: "center",
+                        backgroundColor: "#fff",
+                        flex: 1,
+                        flexDirection: "column",
+                        padding: 20,
+                        borderBottomRightRadius: 10,
+                        borderBottomLeftRadius: 10
+                      }}
+                    >
+                      <Typography
+                        align="center"
+                        component="div"
+                        variant="body1"
+                        style={{ color: "#000", marginRight: 10 }}
+                      >
+                        <Box fontWeight={600}>
+                          No. of Questions: {this.state.questions_data.length}
+                        </Box>
+                      </Typography>
+                      <br />
+                      <Typography
+                        align="center"
+                        component="div"
+                        variant="body1"
+                        style={{ color: "#000", marginRight: 10 }}
+                      >
+                        <Box fontWeight={600}>
+                          Estimated bandwidth required: 5 Mbps
+                        </Box>
+                      </Typography>
+                    </div>
+                  </Paper>
+
+                  <br />
+                </Box>
+              </Box>
+
+              <Box
+                className={[classes.flexColumnCenter, classes.flexFullWidth]}
+                style={{
+                  flex: 1,
+                  textAlign: "center"
+                }}
+              >
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="primary"
+                  onClick={() => this.gotoLevel("question_screen")}
+                  className={classes.roundedButton}
+                  style={{
+                    minWidth: 200
+                  }}
+                >
+                  Start Interview
+                </Button>
+              </Box>
+            </Box>
+          </Container>
+        );
       case screens.QUESTION_SCREEN:
-        return <div></div>;
+        return (
+          <Container
+            style={{
+              height: "100%",
+              padding: 0
+            }}
+          >
+            <Box
+              className={[classes.flexColumnCenter, classes.flexFullHeight]}
+              style={{
+                flex: 5
+              }}
+            >
+              <Box
+                className={[classes.flexColumnCenter, classes.flexFullWidth]}
+                style={{
+                  flex: 5,
+                  textAlign: "center"
+                }}
+              >
+                <Box
+                  style={{
+                    marginTop: -100
+                  }}
+                >
+                  <Typography
+                    align="center"
+                    component="div"
+                    variant="h6"
+                    style={{ color: "#000" }}
+                  >
+                    Question : {this.state.question_counter + 1}
+                  </Typography>
+                  <br />
+
+                  <br />
+                  <Paper
+                    style={{
+                      paddingTop: 20,
+                      PaddingBottom: 20,
+                      width: 400,
+                      borderRadius: 10,
+                      backgroundColor: "#e8e8e8"
+                    }}
+                  >
+                    {/* <Typography
+                      align="center"
+                      component="div"
+                      variant="body1"
+                      style={{ color: "#000", padding: 10 }}
+                    >
+                      Question:
+                    </Typography> */}
+
+                    <Typography
+                      align="center"
+                      component="div"
+                      variant="body1"
+                      style={{ color: "#000", marginRight: 10 }}
+                    >
+                      {
+                        this.state.questions_data[this.state.question_counter][
+                          "question"
+                        ]
+                      }
+                    </Typography>
+
+                    <br />
+                  </Paper>
+
+                  <br />
+
+                  <br />
+
+                  <Typography>Recording starts in</Typography>
+                  <br />
+
+                  <Box
+                    fontWeight={400}
+                    style={{
+                      height: 100,
+                      width: 100,
+                      backgroundColor: "#bbb",
+                      borderRadius: "50%",
+                      margin: "0 auto",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 24
+                    }}
+                  >
+                    {this.state.question_timer}
+                  </Box>
+
+                  <br />
+                </Box>
+              </Box>
+
+              <Box
+                className={[classes.flexColumnCenter, classes.flexFullWidth]}
+                style={{
+                  flex: 1,
+                  textAlign: "center"
+                }}
+              >
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="primary"
+                  onClick={() => this.gotoLevel("recording_screen")}
+                  className={classes.roundedButton}
+                  style={{
+                    minWidth: 200
+                  }}
+                >
+                  Proceed
+                </Button>
+              </Box>
+            </Box>
+          </Container>
+        );
       case screens.RECORDING_SCREEN:
         return (
           <React.Fragment>
@@ -782,7 +1288,7 @@ class VideoInterview extends Component {
                         color: "#ff0000"
                       }}
                     >
-                      <Box fontWeight={800}>120 Secs</Box>
+                      <Box fontWeight={800}>{this.state.answer_timer} Secs</Box>
                     </Typography>
                   </div>
                 </Paper>
@@ -840,7 +1346,7 @@ class VideoInterview extends Component {
                   variant="contained"
                   className={classes.stopButton}
                   startIcon={<StopIcon style={{ color: "#ff0000" }} />}
-                  onClick={this.clearAndStopVideoRecording}
+                  onClick={this.ClearRecordingTimers}
                 >
                   Stop
                 </Button>
@@ -856,9 +1362,94 @@ class VideoInterview extends Component {
           </React.Fragment>
         );
       case screens.UPLOADING_SCREEN:
-        return <div></div>;
+        return <div>Uploading Screen</div>;
       case screens.GAME_END_SCREEN:
-        return <div></div>;
+        return (
+          <Container
+            style={{
+              height: "100%",
+              padding: 0
+            }}
+          >
+            <div className={classes.flexFullHeight}>
+              <div
+                style={{
+                  flex: 1
+                }}
+              >
+                {/* Left Empty Container */}
+              </div>
+              <Box
+                className={[classes.flexColumnCenter, classes.flexFullHeight]}
+                style={{
+                  flex: 5
+                }}
+              >
+                <Box
+                  className={[classes.flexColumnCenter, classes.flexFullWidth]}
+                  style={{
+                    flex: 3,
+                    textAlign: "center"
+                  }}
+                >
+                  <Box
+                    style={{
+                      marginTop: 0,
+                      height: 350
+                      //width: 200,
+                      //height: imgHeight
+                      //boxShadow: "0px 2.8px 2.2px rgba(0, 0, 0, 0.034)"
+                      // boxShadow: "10px 10px 5px -8px rgba(245,242,245,1)"
+                    }}
+                  >
+                    <img
+                      src={require("../assets/Game_Icons/Video_Interview_Test.png")}
+                      alt="Video Interview Logo"
+                      style={{ height: 200, aspectRatio: 1.0 }}
+                    />
+                    <Typography
+                      component="div"
+                      style={{
+                        marginTop: 30,
+                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
+                      }}
+                      variant="body1"
+                    >
+                      {"Thanks for taking the test"}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box
+                  className={[classes.flexColumnCenter, classes.flexFullWidth]}
+                  style={{
+                    flex: 1,
+                    textAlign: "center"
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="primary"
+                    onClick={() => this.onFinish()}
+                    className={classes.roundedButton}
+                    style={{
+                      minWidth: 200
+                    }}
+                  >
+                    Next
+                  </Button>
+                </Box>
+              </Box>
+              <div
+                style={{
+                  flex: 1
+                }}
+              >
+                {/* Reft Empty Container */}
+              </div>
+            </div>
+          </Container>
+        );
       default:
         return <div></div>;
     }
@@ -886,7 +1477,16 @@ class VideoInterview extends Component {
                   overflow: "hidden"
                 }}
               >
-                {this.getScreen(this.state.currentScreenName, classes)}
+                <InternetCheck
+                  message="No Connection"
+                  style={{
+                    color: "#fff",
+                    backgroundColor: "#000",
+                    textAlign: "center"
+                  }}
+                />
+                {this.state.renderVideoInterview &&
+                  this.getScreen(this.state.currentScreenName, classes)}
               </Box>
             </Paper>
           </div>
@@ -896,4 +1496,4 @@ class VideoInterview extends Component {
   }
 }
 
-export default withStyles(styles)(VideoInterview);
+export default NetworkDetector(withStyles(styles)(VideoInterview));

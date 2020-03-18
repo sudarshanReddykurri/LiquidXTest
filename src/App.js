@@ -19,6 +19,7 @@ class App extends Component {
     };
     this.ref = React.createRef();
     document.title = "PerspectAI";
+
   }
 
   componentDidMount() {

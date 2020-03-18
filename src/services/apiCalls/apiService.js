@@ -143,6 +143,11 @@ const apiCall = {
       headers: this.getHeaders()
     });
   },
+  getInterviewQuestionsData(userID) {
+    return apiClient.get("/ai_interview_questions/" + userID, {
+      headers: this.getHeaders()
+    });
+  },
   getHeaders() {
     return {
       //"Accept": "application/json",
