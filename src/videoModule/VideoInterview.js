@@ -17,6 +17,7 @@ import {
   Grid,
   IconButton,
   Input,
+  LinearProgress,
   Paper,
   Slider,
   Typography,
@@ -31,8 +32,15 @@ import apiCall from "../services/apiCalls/apiService";
 
 let recordRTC;
 const mediaConstraints = { video: true, audio: true };
+// https://github.com/muaz-khan/RecordRTC/wiki/mimeType-and-recorderType
+
+//var mime = 'video/webm; codecs=opus,vp9';
+var mime = 'video/mp4; codecs="avc1.424028, mp4a.40.2"';
 const recordingOptions = {
-  mimeType: "video/webm;codecs=vp9",
+  // mimeType = 'video/webm; codecs=opus,vp9'; //this works for chrome
+  //  mimeType = 'video/webm; codecs=opus,vp8'; //this works for firefox
+  mimeType: mime,
+  //mimeType: 'video/mp4; codecs="avc1.424028, mp4a.40.2"',
   bitsPerSecond: 128000
 };
 const toBuffer = require("blob-to-buffer");
@@ -47,6 +55,7 @@ const screens = {
   QUESTION_SCREEN: "question_screen",
   RECORDING_SCREEN: "recording_screen",
   UPLOADING_SCREEN: "uploading_screen",
+  LAST_VIDEO_UPLOAD_SCREEN: "last_video_upload_screen",
   GAME_END_SCREEN: "game_end_screen"
 };
 
@@ -179,7 +188,9 @@ class VideoInterview extends Component {
       question_counter: 0,
       renderVideoInterview: false,
       question_timer: 0,
-      answer_timer: 0
+      answer_timer: 0,
+      uploadProgress: 0,
+      uploadStatus: ""
     };
     this.unSubscribeTimer = null;
     this.unSubscribeRecordingTimer = null;
@@ -219,7 +230,7 @@ class VideoInterview extends Component {
       apiCall
         .getInterviewQuestionsData("sudarshankurri19900101_01")
         .then(res => {
-          console.log("Workbench -> componentDidMount -> res", res);
+          // console.log("Workbench -> componentDidMount -> res", res);
           if (res.data.message === "Success") {
             console.log(
               "VideoInterview -> componentDidMount -> res.data",
@@ -305,7 +316,7 @@ class VideoInterview extends Component {
           //     "Video"
           //   );
         } else {
-          console.log("Found another kind of device: ", deviceInfo);
+          // console.log("Found another kind of device: ", deviceInfo);
         }
       }
 
@@ -339,7 +350,7 @@ class VideoInterview extends Component {
         // localMediaStream = stream;
         video.srcObject = this.localMediaStream;
         video.onloadedmetadata = function(e) {
-          console.log("App -> video.onloadedmetadata -> e", e);
+          // console.log("App -> video.onloadedmetadata -> e", e);
           // if (this.state.currentScreenName === "recording_screen") {
 
           _this.StartRecordingAnswerTimer();
@@ -395,9 +406,10 @@ class VideoInterview extends Component {
   }
 
   StartVideoRecording(alloted_time, stream) {
-    console.log("successCallback -> stream", stream);
+    // console.log("successCallback -> stream", stream);
     recordRTC = RecordRTC(stream, recordingOptions);
     recordRTC.startRecording();
+
     // after X amount of seconds clear the timer interval and stop recording
     this.unSubscribeRecordingTimer = setTimeout(() => {
       this.clearAndStopVideoRecording();
@@ -427,14 +439,10 @@ class VideoInterview extends Component {
   }
 
   clearAndStopVideoRecording() {
+    let _this = this;
     try {
       if (recordRTC) {
         recordRTC.stopRecording(audioVideoWebMURL => {
-          console.log(
-            "App -> btnStopRecording -> audioVideoWebMURL",
-            audioVideoWebMURL
-          );
-
           const video = this.refs.video;
           video.pause();
           video.srcObject = null;
@@ -446,57 +454,122 @@ class VideoInterview extends Component {
             );
             this.stopMediaStream(this.localMediaStream);
             // Next Level
-            if (
-              this.state.question_counter <
-              this.state.questions_data.length - 1
-            ) {
-              this.setState(
-                {
-                  question_counter: this.state.question_counter + 1
-                },
-                () => {
-                  this.gotoLevel("question_screen");
+            let blob = recordRTC.getBlob();
+            // console.log("App -> btnStopRecording -> blob", blob);
+
+            const upload_config = {
+              onUploadProgress: function(progressEvent) {
+                var percentCompleted = Math.round(
+                  progressEvent.loaded / progressEvent.total
+                );
+                if (percentCompleted < 1) {
+                  _this.setState({
+                    uploadProgress: percentCompleted,
+                    uploadStatus:
+                      "Please wait while we are uploading video to cloud"
+                  });
+                } else {
+                  _this.setState({
+                    uploadProgress: 1,
+                    uploadStatus: "Video Uploaded Successfully"
+                  });
                 }
-              );
-            } else {
-              this.gotoLevel("uploading_screen");
-            }
+                console.log(
+                  "this.state.uploadProgress",
+                  _this.state.uploadProgress
+                );
+              }
+            };
+
+            apiCall
+              .getInterviewUploadPreSignedUrl(
+                "sudarshankurri19900101_01",
+                `${this.state.question_counter}.mp4`
+              )
+              .then(res => {
+                if (res.status === 200) {
+                  let upload_presigned_url = res.data.url;
+                  // Upload to s3
+                  apiCall
+                    .uploadVideoFromPreSignedUrl(
+                      upload_presigned_url,
+                      blob,
+                      upload_config
+                    )
+                    .then(response => {
+                      console.log(
+                        "VideoInterview -> clearAndStopVideoRecording -> response",
+                        response
+                      );
+                      if (res.status === 200) {
+                        // this.setState(
+                        //   {
+                        //     question_counter: this.state.question_counter + 1
+                        //   },
+                        //   () => {
+                        if (
+                          this.state.question_counter <
+                          this.state.questions_data.length - 1
+                        ) {
+                          this.gotoLevel("uploading_screen");
+                        } else {
+                          this.gotoLevel("last_video_upload_screen");
+                        }
+
+                        //}
+                        //);
+                      } else {
+                        console.log(
+                          "Failed uploading video to the cloud. Retry again"
+                        );
+                      }
+                    });
+
+                  // Save to disk (For Testing Purpose Only)
+                  // 1. Convert the data into 'blob'
+
+                  // 2. Create blob link to download
+                  // const url = window.URL.createObjectURL(
+                  //   new Blob([blob])
+                  // );
+                  // console.log(
+                  //   "VideoInterview -> clearAndStopVideoRecording -> url",
+                  //   url
+                  // );
+                  // const link = document.createElement("a");
+                  // link.href = url;
+                  // link.setAttribute("download", `sample.mp4`);
+                  // // 3. Append to html page
+                  // document.body.appendChild(link);
+                  // // 4. Force download
+                  // link.click();
+                  // // 5. Clean up and remove the link
+                  // link.parentNode.removeChild(link);
+                }
+              });
+            //this.gotoLevel("question_screen");
           }
-
-          let blob = recordRTC.getBlob();
-          console.log("App -> btnStopRecording -> blob", blob);
-
-          let params = {
-            data: blob,
-            id: Math.floor(Math.random() * 90000) + 10000
-          };
-
-          // if (this.unSubscribeRecordingTimer) {
-          //   clearTimeout(this.unSubscribeRecordingTimer);
-          // }
-
-          // toBuffer(blob, (err, buffer) => {
-          //   if (err) throw err;
-          //   let temp_file = toArrayBuffer(buffer);
-          //   console.log("App -> clearAndStopVideoRecording -> temp_file", temp_file)
-          // })
-
-          this.setState({
-            videoEnded: true
-          });
         });
       }
     } catch (err) {
-      console.log("No video recorded yet");
+      // console.log("No video recorded yet");
     }
   }
 
   onFinish() {
-    console.log("The End");
+    // console.log("The End");
+  }
+
+  onUploadProceed() {
+    if (this.state.question_counter < this.state.questions_data.length - 1) {
+      this.gotoLevel("question_screen");
+    } else {
+      this.gotoLevel("game_end_screen");
+    }
   }
 
   gotoLevel(level_name) {
-    console.log("TCL: gotoLevel -> level_name", level_name);
+    // console.log("TCL: gotoLevel -> level_name", level_name);
     if (this.unSubscribeTimer) {
       clearInterval(this.unSubscribeTimer);
     }
@@ -519,13 +592,12 @@ class VideoInterview extends Component {
         let temp_question_time = this.state.questions_data[
           this.state.question_counter
         ]["prep_time"];
-        console.log(
-          "VideoInterview -> gotoLevel -> temp_question_time",
-          temp_question_time
-        );
+
         this.setState(
           {
-            question_timer: temp_question_time
+            question_timer: temp_question_time,
+            uploadProgress: 0,
+            uploadStatus: ""
           },
           () => {
             console.log(
@@ -585,6 +657,8 @@ class VideoInterview extends Component {
         );
         break;
       case screens.UPLOADING_SCREEN:
+        break;
+      case screens.LAST_VIDEO_UPLOAD_SCREEN:
         break;
       case screens.GAME_END_SCREEN:
         break;
@@ -1362,7 +1436,203 @@ class VideoInterview extends Component {
           </React.Fragment>
         );
       case screens.UPLOADING_SCREEN:
-        return <div>Uploading Screen</div>;
+        return (
+          <Container
+            style={{
+              height: "100%",
+              padding: 0
+            }}
+          >
+            <Box
+              className={[classes.flexColumnCenter, classes.flexFullHeight]}
+              style={{
+                flex: 5
+              }}
+            >
+              <Box
+                className={[classes.flexColumnCenter, classes.flexFullWidth]}
+                style={{
+                  flex: 5,
+                  textAlign: "center"
+                }}
+              >
+                <Box
+                  style={{
+                    margin: "0 60px",
+                    marginTop: -200
+                  }}
+                >
+                  <div
+                    style={{
+                      paddingTop: 20,
+                      PaddingBottom: 20,
+                      width: 500,
+                      borderRadius: 10
+                    }}
+                  >
+                    <Typography
+                      align="center"
+                      component="div"
+                      variant="h6"
+                      style={{ color: "#000", marginBottom: 20 }}
+                    >
+                      {this.state.uploadStatus}
+                    </Typography>
+                    {this.state.uploadProgress >= 1 ? (
+                      <div></div>
+                    ) : (
+                      <LinearProgress
+                        mode="determinate"
+                        value={this.state.uploadProgress}
+                      />
+                    )}
+                    <br />
+                  </div>
+                  <br />
+                  <br />
+                  <Typography
+                    align="center"
+                    component="div"
+                    variant="body1"
+                    style={{ color: "#000", marginBottom: 20 }}
+                  >
+                    You will have 15 seconds to prepare to answer the next
+                    question and a specific time limit to complete your
+                    response. You will only be given one attempt to complete
+                    your answer.
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box
+                className={[classes.flexColumnCenter, classes.flexFullWidth]}
+                style={{
+                  flex: 2,
+                  textAlign: "center"
+                }}
+              >
+                {this.state.uploadProgress >= 1 ? (
+                  <Typography
+                    align="center"
+                    component="div"
+                    variant="body1"
+                    style={{ color: "#000", marginBottom: 20 }}
+                  >
+                    Tap "Proceed" to continue with your interview.
+                  </Typography>
+                ) : (
+                  <div></div>
+                )}
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="primary"
+                  disabled={this.state.uploadProgress >= 1 ? false : true}
+                  onClick={() => this.onUploadProceed()}
+                  className={classes.roundedButton}
+                  style={{
+                    minWidth: 200
+                  }}
+                >
+                  Proceed
+                </Button>
+              </Box>
+            </Box>
+          </Container>
+        );
+      case screens.LAST_VIDEO_UPLOAD_SCREEN:
+        return (
+          <Container
+            style={{
+              height: "100%",
+              padding: 0
+            }}
+          >
+            <Box
+              className={[classes.flexColumnCenter, classes.flexFullHeight]}
+              style={{
+                flex: 5
+              }}
+            >
+              <Box
+                className={[classes.flexColumnCenter, classes.flexFullWidth]}
+                style={{
+                  flex: 5,
+                  textAlign: "center"
+                }}
+              >
+                <Box
+                  style={{
+                    margin: "0 60px",
+                    marginTop: -200
+                  }}
+                >
+                  <div
+                    style={{
+                      paddingTop: 20,
+                      PaddingBottom: 20,
+                      width: 500,
+                      borderRadius: 10
+                    }}
+                  >
+                    <Typography
+                      align="center"
+                      component="div"
+                      variant="h6"
+                      style={{ color: "#000", marginBottom: 20 }}
+                    >
+                      {this.state.uploadStatus}
+                    </Typography>
+                    {this.state.uploadProgress >= 1 ? (
+                      <div></div>
+                    ) : (
+                      <LinearProgress
+                        mode="determinate"
+                        value={this.state.uploadProgress}
+                      />
+                    )}
+                    <br />
+                  </div>
+                  <br />
+                  <br />
+                  <Typography
+                    align="center"
+                    component="div"
+                    variant="body1"
+                    style={{ color: "#000", marginBottom: 20 }}
+                  >
+                    Congratulations for making to the end of this module. Your
+                    video will be processed once it is successfully uploaded in
+                    the cloud.
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box
+                className={[classes.flexColumnCenter, classes.flexFullWidth]}
+                style={{
+                  flex: 2,
+                  textAlign: "center"
+                }}
+              >
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="primary"
+                  disabled={this.state.uploadProgress >= 1 ? false : true}
+                  onClick={() => this.onUploadProceed()}
+                  className={classes.roundedButton}
+                  style={{
+                    minWidth: 200
+                  }}
+                >
+                  Proceed
+                </Button>
+              </Box>
+            </Box>
+          </Container>
+        );
+
       case screens.GAME_END_SCREEN:
         return (
           <Container

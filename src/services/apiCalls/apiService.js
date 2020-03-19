@@ -148,6 +148,25 @@ const apiCall = {
       headers: this.getHeaders()
     });
   },
+  getInterviewUploadPreSignedUrl(userID, videoName) {
+    return apiClient.get("/video/interview/" + userID + "/" + videoName, {
+      headers: this.getHeaders()
+    });
+  },
+  videoUploadComplete(payload) {
+    return apiClient.post("/videoint/complete/", payload, {
+      headers: this.getHeaders()
+    });
+  },
+  uploadVideoFromPreSignedUrl(pre_signed_url, file_to_upload, config) {
+    // const formData = new FormData();
+    // formData.append("file", file_to_upload);
+    return apiClient.put(pre_signed_url, file_to_upload, config, {
+      headers: {
+       // "content-type": "multipart/form-data"
+      }
+    });
+  },
   getHeaders() {
     return {
       //"Accept": "application/json",
