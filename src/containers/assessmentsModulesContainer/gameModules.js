@@ -105,7 +105,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "react",
-    module_supported: false
+    module_supported: true
   },
   "mob-13": {
     module_name: "PEAQ - 1",

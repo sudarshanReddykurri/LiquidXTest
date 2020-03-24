@@ -28,6 +28,13 @@ import RecordRTC from "recordrtc";
 import NetworkDetector from "../hoc/NetworkDetector";
 import InternetCheck from "../components/internetCheck";
 import apiCall from "../services/apiCalls/apiService";
+import { red, green } from "@material-ui/core/colors";
+import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import CancelIcon from "@material-ui/icons/Cancel";
+import MicIcon from '@material-ui/icons/Mic';
+import { inject, observer } from "mobx-react";
+import { withRouter } from "react-router-dom";
+import AudioAnalyzer from "./AudioAnalyzer";
 // const speedTest = require("speedtest-net");
 
 let recordRTC;
@@ -49,6 +56,7 @@ const toArrayBuffer = require("to-arraybuffer");
 const screens = {
   INITIAL: "initial_screen",
   DEVICE_CHECK: "device_screen",
+  MIKE_CHECK: "mike_screen",
   NETWORK_CHECK: "network_screen",
   GUIDELINES_SLIDES: "guidelines_screen",
   INSTRUCTION_SCREEN: "instruction_screen",
@@ -137,6 +145,7 @@ function errorMessage(message, e) {
   alert(message);
 }
 
+let game_index = "";
 class VideoInterview extends Component {
   constructor() {
     super();
@@ -190,7 +199,9 @@ class VideoInterview extends Component {
       question_timer: 0,
       answer_timer: 0,
       uploadProgress: 0,
-      uploadStatus: ""
+      uploadStatus: "",
+      showVideoInterview: false,
+      audio: null
     };
     this.unSubscribeTimer = null;
     this.unSubscribeRecordingTimer = null;
@@ -202,6 +213,10 @@ class VideoInterview extends Component {
     this.StartVideoRecording = this.StartVideoRecording.bind(this);
     this.startStream = this.startStream.bind(this);
     this.ClearRecordingTimers = this.ClearRecordingTimers.bind(this);
+    this.onVideoInterviewFinishApiCall = this.onVideoInterviewFinishApiCall.bind(
+      this
+    );
+    this.toggleMicrophone = this.toggleMicrophone.bind(this);
   }
 
   onGuidelinesPress() {
@@ -222,51 +237,80 @@ class VideoInterview extends Component {
     // } finally {
     //   process.exit(0);
     // }
-
-    if (!hasGetUserMedia()) {
-      alert("getUserMedia() is not supported in your browser");
-      return;
-    } else {
-      apiCall
-        .getInterviewQuestionsData("sudarshankurri19900101_01")
-        .then(res => {
-          // console.log("Workbench -> componentDidMount -> res", res);
-          if (res.data.message === "Success") {
-            console.log(
-              "VideoInterview -> componentDidMount -> res.data",
-              res.data
-            );
-
-            this.setState(
-              {
-                questions_data: res.data["questions_list"]
-              },
-              () => {
+    const { user } = this.props.rootTree;
+    game_index = user.currentAssessment.current_game;
+    if (game_index !== "") {
+      this.setState(
+        {
+          showVideoInterview: true
+        },
+        () => {
+          if (!hasGetUserMedia()) {
+            alert("getUserMedia() is not supported in your browser");
+            return;
+          } else {
+            apiCall.getInterviewQuestionsData(user.userId).then(res => {
+              // console.log("Workbench -> componentDidMount -> res", res);
+              if (res.data.message === "Success") {
                 console.log(
-                  "VideoInterview -> componentDidMount -> questions_data",
-                  this.state.questions_data[0]["question"]
+                  "VideoInterview -> componentDidMount -> res.data",
+                  res.data
                 );
-                let temp_alloted_time = 0;
-                this.state.questions_data.map((ques, index) => {
-                  temp_alloted_time = temp_alloted_time + ques.alotted_time;
-                });
+
                 this.setState(
                   {
-                    interview_duration: temp_alloted_time / 60,
-                    renderVideoInterview: true
+                    questions_data: res.data["questions_list"]
                   },
                   () => {
-                    // Testing
-                    //this.gotoLevel("question_screen");
+                    console.log(
+                      "VideoInterview -> componentDidMount -> questions_data",
+                      this.state.questions_data[0]["question"]
+                    );
+                    let temp_alloted_time = 0;
+                    this.state.questions_data.map((ques, index) => {
+                      temp_alloted_time = temp_alloted_time + ques.alotted_time;
+                    });
+                    this.setState(
+                      {
+                        interview_duration: temp_alloted_time / 60,
+                        renderVideoInterview: true
+                      },
+                      () => {
+                        this.hasCamAndMicrophone();
+                      }
+                    );
                   }
                 );
               }
-            );
+            });
+            //this.startStream();
+            //this.hasCamAndMicrophone();
           }
-        });
-      //this.startStream();
-      //this.hasCamAndMicrophone();
+        }
+      );
     }
+
+    window.addEventListener("popstate", () => {
+      //history.go(1);
+      window.location.reload();
+    });
+  }
+
+  async getMicrophone() {
+    const audio = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: false
+    });
+    this.setState({ audio });
+  }
+
+  stopMicrophone() {
+    this.state.audio.getTracks().forEach(track => track.stop());
+    this.setState({ audio: null });
+  }
+
+  toggleMicrophone() {
+    this.state.audio ? this.stopMicrophone() : this.getMicrophone();
   }
 
   componentWillUnmount() {
@@ -440,6 +484,7 @@ class VideoInterview extends Component {
 
   clearAndStopVideoRecording() {
     let _this = this;
+    const { user } = this.props.rootTree;
     try {
       if (recordRTC) {
         recordRTC.stopRecording(audioVideoWebMURL => {
@@ -456,6 +501,15 @@ class VideoInterview extends Component {
             // Next Level
             let blob = recordRTC.getBlob();
             // console.log("App -> btnStopRecording -> blob", blob);
+
+            if (
+              this.state.question_counter <
+              this.state.questions_data.length - 1
+            ) {
+              this.gotoLevel("uploading_screen");
+            } else {
+              this.gotoLevel("last_video_upload_screen");
+            }
 
             const upload_config = {
               onUploadProgress: function(progressEvent) {
@@ -483,8 +537,8 @@ class VideoInterview extends Component {
 
             apiCall
               .getInterviewUploadPreSignedUrl(
-                "sudarshankurri19900101_01",
-                `${this.state.question_counter}.mp4`
+                user.userId,
+                `${this.state.question_counter + 1}.mp4`
               )
               .then(res => {
                 if (res.status === 200) {
@@ -507,17 +561,17 @@ class VideoInterview extends Component {
                         //     question_counter: this.state.question_counter + 1
                         //   },
                         //   () => {
-                        if (
-                          this.state.question_counter <
-                          this.state.questions_data.length - 1
-                        ) {
-                          this.gotoLevel("uploading_screen");
-                        } else {
-                          this.gotoLevel("last_video_upload_screen");
-                        }
-
                         //}
                         //);
+                        if (
+                          this.state.question_counter ===
+                          this.state.questions_data.length - 1
+                        ) {
+                          // "last_video_upload_screen"
+                          console.log("Last Video finish call triggered");
+                          this.onVideoInterviewFinishApiCall();
+                        } else {
+                        }
                       } else {
                         console.log(
                           "Failed uploading video to the cloud. Retry again"
@@ -556,17 +610,56 @@ class VideoInterview extends Component {
     }
   }
 
+  onVideoInterviewFinishApiCall() {
+    const { user } = this.props.rootTree;
+    let payload = {
+      user_id: user.userId
+    };
+    apiCall
+      .videoUploadComplete(payload)
+      .then(response => {
+        console.log("onVideoInterviewFinishApiCall response", response);
+        if (response.status === 200) {
+          console.log("onVideoInterviewFinishApiCall success");
+        } else {
+          console.log("onVideoInterviewFinishApiCall failed");
+        }
+      })
+      .catch(errror => {
+        console.log("onVideoInterviewFinishApiCall errror", errror);
+        console.log(errror.response);
+        let err_resp = errror.response;
+        if (err_resp.status === 404) {
+          console.log("err_resp", err_resp.data.message);
+        }
+      });
+  }
+
   onFinish() {
     // console.log("The End");
+    const { user } = this.props.rootTree;
+    user.currentAssessment.add_to_complete_games(game_index);
+    user.currentAssessment.remove_from_games_to_play(game_index);
+    user.currentAssessment.update_current_game("");
+    this.props.history.goBack();
   }
 
   onUploadProceed() {
     if (this.state.question_counter < this.state.questions_data.length - 1) {
-      this.gotoLevel("question_screen");
+      this.setState(
+        {
+          question_counter: this.state.question_counter + 1
+        },
+        () => {
+          this.gotoLevel("question_screen");
+        }
+      );
     } else {
       this.gotoLevel("game_end_screen");
     }
   }
+
+  audioVizualizer() {}
 
   gotoLevel(level_name) {
     // console.log("TCL: gotoLevel -> level_name", level_name);
@@ -581,6 +674,8 @@ class VideoInterview extends Component {
       case screens.INITIAL:
         break;
       case screens.DEVICE_CHECK:
+        break;
+      case screens.MIKE_CHECK:
         break;
       case screens.NETWORK_CHECK:
         break;
@@ -735,7 +830,7 @@ class VideoInterview extends Component {
                     variant="contained"
                     size="small"
                     color="primary"
-                    onClick={() => this.gotoLevel("guidelines_screen")}
+                    onClick={() => this.gotoLevel("device_screen")}
                     className={classes.roundedButton}
                     style={{
                       minWidth: 200
@@ -807,8 +902,8 @@ class VideoInterview extends Component {
                       }}
                       variant="body1"
                     >
-                      Please, make sure you are in front of a system with
-                      Microphone and a Camera.
+                      Make sure your device has both <b>Microphone</b> and{" "}
+                      <b>Camera</b> attached.
                     </Typography>
                     {/* <Typography
                       component="div"
@@ -831,15 +926,24 @@ class VideoInterview extends Component {
                           textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
                         }}
                       >
-                        Number of audio devices found
+                        <b>Audio device</b> found:
                       </Typography>
                     </Box>
                     <br />
-                    <Box
+
+                    {this.state.audioDeviceIds.length > 0 ? (
+                      <CheckCircleIcon
+                        style={{ color: green[500], fontSize: 60 }}
+                      />
+                    ) : (
+                      <CancelIcon style={{ color: red[500], fontSize: 60 }} />
+                    )}
+
+                    {/* <Box
                       fontWeight={400}
                       style={{
-                        height: 100,
-                        width: 100,
+                        height: 80,
+                        width: 80,
                         backgroundColor: "#bbb",
                         borderRadius: "50%",
                         margin: "0 auto",
@@ -850,7 +954,7 @@ class VideoInterview extends Component {
                       }}
                     >
                       {this.state.audioDeviceIds.length}
-                    </Box>
+                    </Box> */}
                     <br />
                     <br />
                     <Box fontWeight={800}>
@@ -860,15 +964,22 @@ class VideoInterview extends Component {
                           textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
                         }}
                       >
-                        Number of video devices found
+                        <b>Video device</b> found:
                       </Typography>
                     </Box>
                     <br />
-                    <Box
+                    {this.state.videoDeviceIds.length > 0 ? (
+                      <CheckCircleIcon
+                        style={{ color: green[500], fontSize: 60 }}
+                      />
+                    ) : (
+                      <CancelIcon style={{ color: red[500], fontSize: 60 }} />
+                    )}
+                    {/* <Box
                       fontWeight={400}
                       style={{
-                        height: 100,
-                        width: 100,
+                        height: 80,
+                        width: 80,
                         backgroundColor: "#bbb",
                         borderRadius: "50%",
                         margin: "0 auto",
@@ -879,7 +990,178 @@ class VideoInterview extends Component {
                       }}
                     >
                       {this.state.videoDeviceIds.length}
+                    </Box> */}
+                  </Box>
+                </Box>
+
+                <Box
+                  className={[classes.flexColumnCenter, classes.flexFullWidth]}
+                  style={{
+                    flex: 1,
+                    textAlign: "center",
+                    marginTop: -20
+                  }}
+                >
+                  {this.state.audioDeviceIds.length > 0 &&
+                  this.state.videoDeviceIds.length > 0 ? (
+                    <Button
+                      variant="contained"
+                      size="small"
+                      color="primary"
+                      disabled={
+                        this.state.audioDeviceIds.length > 0 &&
+                        this.state.videoDeviceIds.length > 0
+                          ? false
+                          : true
+                      }
+                      onClick={() => this.gotoLevel("mike_screen")}
+                      className={classes.roundedButton}
+                      style={{
+                        minWidth: 200
+                      }}
+                    >
+                      Proceed
+                    </Button>
+                  ) : (
+                    <Box>
+                      <Typography>
+                        You cannot take the test with out camera and microphone
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        color="primary"
+                        onClick={() => this.hasCamAndMicrophone}
+                        className={classes.roundedButton}
+                        style={{
+                          minWidth: 200,
+                          marginTop: 10
+                        }}
+                      >
+                        Re-Check
+                      </Button>
                     </Box>
+                  )}
+                </Box>
+              </Box>
+              <div
+                style={{
+                  flex: 1
+                }}
+              >
+                {/* Reft Empty Container */}
+              </div>
+            </div>
+          </Container>
+        );
+      case screens.MIKE_CHECK:
+        return (
+          <Container
+            style={{
+              height: "100%",
+              padding: 0
+            }}
+          >
+            <div className={classes.flexFullHeight}>
+              <div
+                style={{
+                  flex: 1
+                }}
+              >
+                {/* Left Empty Container */}
+              </div>
+              <Box
+                className={[classes.flexColumnCenter, classes.flexFullHeight]}
+                style={{
+                  flex: 5
+                }}
+              >
+                <Box
+                  className={[classes.flexColumnCenter, classes.flexFullWidth]}
+                  style={{
+                    flex: 3,
+                    textAlign: "center"
+                  }}
+                >
+                  <Box
+                    style={{
+                      marginTop: -50
+                    }}
+                  >
+                    <Typography
+                      component="div"
+                      style={{
+                        marginTop: 100,
+                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
+                      }}
+                      variant="h5"
+                    >
+                      Microphone Test
+                    </Typography>
+                    <Typography
+                      component="div"
+                      style={{
+                        marginTop: 20,
+                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
+                      }}
+                      variant="body1"
+                    >
+                      Get easily started with your test!
+                    </Typography>
+                    <Typography
+                      component="div"
+                      style={{
+                        marginTop: 50,
+                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
+                        texAlign: "left",
+                        lineHeight: 2
+                      }}
+                      align="left"
+                      variant="body1"
+                    >
+                      <ol>
+                        <li>Click the 'Test Microphone Input' button.</li>
+                        <li>
+                          Click 'allow' if microphone permission is requested in
+                          the browser.
+                        </li>
+                        <li>
+                          Now the line should move when you talk into the mic!
+                        </li>
+                        <li>
+                          If the line is moving while you talk, then your
+                          microphone is working properly. Click 'proceed'
+                          button.
+                        </li>
+                      </ol>
+                    </Typography>
+
+                    <Box
+                      style={{
+                        height: 200
+                      }}
+                    >
+                      {this.state.audio ? (
+                        <AudioAnalyzer audio={this.state.audio} />
+                      ) : (
+                        <Box></Box>
+                      )}
+                    </Box>
+
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="primary"
+                      onClick={this.toggleMicrophone}
+                      className={classes.roundedButton}
+                      style={{
+                        minWidth: 200
+                      }}
+                    >
+                      {this.state.audio
+                        ? "Stop Microphone"
+                        : "Test microphone input"}
+                    </Button>
                   </Box>
                 </Box>
 
@@ -894,7 +1176,11 @@ class VideoInterview extends Component {
                     variant="contained"
                     size="small"
                     color="primary"
-                    onClick={() => this.gotoLevel("guidelines_screen")}
+                    disabled={this.state.audio ? false : true}
+                    onClick={() => {
+                      this.stopMicrophone();
+                      this.gotoLevel("guidelines_screen");
+                    }}
                     className={classes.roundedButton}
                     style={{
                       minWidth: 200
@@ -1479,16 +1765,24 @@ class VideoInterview extends Component {
                       {this.state.uploadStatus}
                     </Typography>
                     {this.state.uploadProgress >= 1 ? (
-                      <div></div>
+                      <div>
+                        <CheckCircleIcon
+                          style={{ color: green[500], fontSize: 80 }}
+                        />
+                      </div>
                     ) : (
-                      <LinearProgress
-                        mode="determinate"
-                        value={this.state.uploadProgress}
-                      />
+                      <React.Fragment>
+                        <div className="text-center">
+                          {this.state.uploadProgress}%
+                        </div>
+                        <LinearProgress
+                          variant="determinate"
+                          value={this.state.uploadProgress * 100}
+                        />
+                      </React.Fragment>
                     )}
                     <br />
                   </div>
-                  <br />
                   <br />
                   <Typography
                     align="center"
@@ -1511,7 +1805,7 @@ class VideoInterview extends Component {
                   textAlign: "center"
                 }}
               >
-                {this.state.uploadProgress >= 1 ? (
+                {this.state.uploadProgress <= 1 ? (
                   <Typography
                     align="center"
                     component="div"
@@ -1583,13 +1877,22 @@ class VideoInterview extends Component {
                     >
                       {this.state.uploadStatus}
                     </Typography>
-                    {this.state.uploadProgress >= 1 ? (
-                      <div></div>
+                    {this.state.uploadProgress <= 1 ? (
+                      <div>
+                        <CheckCircleIcon
+                          style={{ color: green[500], fontSize: 80 }}
+                        />
+                      </div>
                     ) : (
-                      <LinearProgress
-                        mode="determinate"
-                        value={this.state.uploadProgress}
-                      />
+                      <React.Fragment>
+                        <div className="text-center">
+                          {this.state.uploadProgress}%
+                        </div>
+                        <LinearProgress
+                          variant="determinate"
+                          value={this.state.uploadProgress * 100}
+                        />
+                      </React.Fragment>
                     )}
                     <br />
                   </div>
@@ -1729,41 +2032,74 @@ class VideoInterview extends Component {
     const { classes, rootTree } = this.props;
     return (
       <React.Fragment>
-        <div
-          style={{
-            backgroundColor: "#d3d3d3",
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0
-          }}
-        >
-          <div className={classes.root}>
-            <Paper className={classes.paper}>
-              <Box
-                style={{
-                  height: "100%",
-                  overflow: "hidden"
+        {this.state.showVideoInterview ? (
+          <div
+            style={{
+              backgroundColor: "#d3d3d3",
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0
+            }}
+          >
+            <div className={classes.root}>
+              <Paper className={classes.paper}>
+                <Box
+                  style={{
+                    height: "100%",
+                    overflow: "hidden"
+                  }}
+                >
+                  <InternetCheck
+                    message="No Connection"
+                    style={{
+                      color: "#fff",
+                      backgroundColor: "#000",
+                      textAlign: "center"
+                    }}
+                  />
+                  {this.state.renderVideoInterview &&
+                    this.getScreen(this.state.currentScreenName, classes)}
+                </Box>
+              </Paper>
+            </div>
+          </div>
+        ) : (
+          <Grid
+            container
+            spacing={0}
+            align="center"
+            justify="center"
+            direction="column"
+            style={{ marginTop: "20%" }}
+          >
+            <Grid item>
+              <h4>404 Game Not Found!!</h4>
+              <p>Please go back and select the game</p>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  this.props.history.goBack();
                 }}
               >
-                <InternetCheck
-                  message="No Connection"
-                  style={{
-                    color: "#fff",
-                    backgroundColor: "#000",
-                    textAlign: "center"
-                  }}
-                />
-                {this.state.renderVideoInterview &&
-                  this.getScreen(this.state.currentScreenName, classes)}
-              </Box>
-            </Paper>
-          </div>
-        </div>
+                Go Back
+              </Button>
+              <p>
+                <i>
+                  Don't reload the page and don't use browser controls to
+                  navigate
+                </i>
+              </p>
+            </Grid>
+          </Grid>
+        )}
       </React.Fragment>
     );
   }
 }
 
-export default NetworkDetector(withStyles(styles)(VideoInterview));
+export default NetworkDetector(
+  withRouter(withStyles(styles)(inject("rootTree")(observer(VideoInterview))))
+);

@@ -271,6 +271,8 @@ class AssessmentModules extends Component {
         case "react":
           if (currentAssessment.current_game === "mob-20") {
             this.props.history.push("/language_test");
+          } else if (currentAssessment.current_game === "mob-12") {
+            this.props.history.push("/video_interview");
           } else {
             //
           }
@@ -557,7 +559,7 @@ const styles = theme => ({
   },
   bread_crumb_link: {
     "&:hover": {
-      cursor: "pointer",
+      cursor: "pointer"
       // color: "#000"
     }
   },
