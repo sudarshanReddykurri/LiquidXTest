@@ -30,6 +30,8 @@ import Modal from "react-bootstrap/Modal";
 import { CircleToBlockLoading } from "react-loadingg";
 import { inject, observer } from "mobx-react";
 import { withRouter } from "react-router-dom";
+import Webcam from "react-webcam";
+import * as faceapi from "face-api.js";
 import apiCall from "../../services/apiCalls/apiService";
 import "./reactUnityStyles.css";
 import FullScreenButton from "../../components/FullScreenButton";
@@ -49,12 +51,28 @@ const styles = theme => ({
 });
 
 let game_index = "";
+let videoRef = null;
+let captured_img_src = null;
+let imageCaptureInterval = 15000; // in ms
+
+const WIDTH = 400;
+const HEIGHT = 400;
+
+let videoConstraints = {
+  width: WIDTH,
+  height: HEIGHT,
+  facingMode: "user"
+};
 class ReactUnityBridge extends Component {
   constructor(props) {
     super(props);
+    this.webcam = React.createRef();
     this.state = {
-      showUnity: false
+      showUnity: false,
+      startVideo: false,
+      faceStatus: "Initializing camera. Please wait.."
     };
+    this.isModelsLoaded = false;
     this.fullScreenRef = null;
     const { user } = this.props.rootTree;
     console.log(
@@ -62,17 +80,19 @@ class ReactUnityBridge extends Component {
       this.props.rootTree
     );
     game_index = user.currentAssessment.current_game;
+   // game_index = "mob-05";
     //this.OnDimensionChange = this.updateDimensions.bind(this);
     //game_index = "mob-11";
-    if (game_index != "") {
-      this.unityContent = new UnityContent(
-        GameConfigModules[game_index].jsonPath,
-        GameConfigModules[game_index].unityLoaderPath
-      );
+    if (game_index !== "") {
       this.state = {
         progression: 0,
         openLoading: true
       };
+
+      this.unityContent = new UnityContent(
+        GameConfigModules[game_index].jsonPath,
+        GameConfigModules[game_index].unityLoaderPath
+      );
 
       this.unityContent.on("sendDataToNativeJS", jsonData => {
         // console.log("Data From Unity");
@@ -83,30 +103,36 @@ class ReactUnityBridge extends Component {
         );
 
         if (dataFromUnity.data_label === "cameradata") {
-          let parsedJsonDataUnity = JSON.parse(dataFromUnity.json_data);
-          let cameraData = {
-            playerid: user.userId,
-            game_name: game_index,
-            timestamp: dataFromUnity.time_stamp,
-            encoded_image: parsedJsonDataUnity.ImageData
-          };
-          apiCall
-            .imageDataUpload(JSON.stringify(cameraData))
-            .then(res => {
-              console.log("TCL: App -> componentDidMount -> rsp", res);
-              if (res.status === 200) {
-                console.log("camera data successfully uploaded");
-              }
-            })
-            .catch(err => {
-              console.log("TCL: App -> componentDidMount -> err", err);
-              console.log(err.response);
-              // const { status, data } = err.response;
-            });
+          // let parsedJsonDataUnity = JSON.parse(dataFromUnity.json_data);
+          // let cameraData = {
+          //   playerid: user.userId,
+          //   game_name: game_index,
+          //   timestamp: dataFromUnity.time_stamp,
+          //   encoded_image: parsedJsonDataUnity.ImageData
+          // };
+          // apiCall
+          //   .imageDataUpload(JSON.stringify(cameraData))
+          //   .then(res => {
+          //     console.log("TCL: App -> componentDidMount -> rsp", res);
+          //     if (res.status === 200) {
+          //       console.log("camera data successfully uploaded");
+          //     }
+          //   })
+          //   .catch(err => {
+          //     console.log("TCL: App -> componentDidMount -> err", err);
+          //     console.log(err.response);
+          //     // const { status, data } = err.response;
+          //   });
         } else if (
           dataFromUnity.data_label === "gamedata" ||
           dataFromUnity.data_label === "pausedata"
         ) {
+          if (dataFromUnity.data_label === "gamedata") {
+            this.clearAllTimers();
+            this.setState({
+              startVideo: false
+            });
+          }
           let gameData = {
             name: game_index,
             data: dataFromUnity.json_data
@@ -124,6 +150,10 @@ class ReactUnityBridge extends Component {
             });
         } else if (dataFromUnity.data_label === "quit") {
           // Called when back or home is pressed in the game
+          this.clearAllTimers();
+          this.setState({
+            startVideo: false
+          });
           user.currentAssessment.update_current_game("");
           this.props.history.goBack();
 
@@ -138,7 +168,10 @@ class ReactUnityBridge extends Component {
           //this.props.history.push("/login");
         } else if (dataFromUnity.data_label === "next") {
           // Called when proceed button is pressed in the game
-
+          this.clearAllTimers();
+          this.setState({
+            startVideo: false
+          });
           user.currentAssessment.add_to_complete_games(game_index);
           user.currentAssessment.remove_from_games_to_play(game_index);
           user.currentAssessment.update_current_game("");
@@ -184,8 +217,27 @@ class ReactUnityBridge extends Component {
     }
   }
 
-  componentDidMount() {
-    if (game_index != "") {
+  clearAllTimers = () => {
+    if (this.imageCaptureTimer) {
+      clearInterval(this.imageCaptureTimer);
+    }
+    if (this.webCameraFaceDetectionInterval) {
+      clearInterval(this.webCameraFaceDetectionInterval);
+    }
+  };
+
+  componentDidMount = async () => {
+    const { history } = this.props;
+
+    //window.addEventListener("resize", this.OnDimensionChange);
+    // Hey, a popstate event happened!
+    window.addEventListener("popstate", () => {
+      //history.go(1);
+      window.location.reload();
+    });
+
+    // Check game_index if not empty then only render unity
+    if (game_index !== "") {
       this.setState(
         {
           showUnity: true
@@ -196,19 +248,126 @@ class ReactUnityBridge extends Component {
           // }
         }
       );
-    }
-    const { history } = this.props;
 
-    //window.addEventListener("resize", this.OnDimensionChange);
-    // Hey, a popstate event happened!
-    window.addEventListener("popstate", () => {
-      //history.go(1);
-      window.location.reload();
+      // Loading Face Detection Model
+      const MODEL_URL = process.env.PUBLIC_URL + "/models";
+      await faceapi.loadTinyFaceDetectorModel(MODEL_URL);
+      setTimeout(() => {
+        this.isModelsLoaded = true;
+        this.checkModelsLoaded();
+      }, 500);
+    }
+  };
+
+  checkModelsLoaded = () => {
+    if (this.isModelsLoaded) {
+      console.log("Models loaded successfully");
+      this.setInputDevice();
+      this.setState(
+        {
+          startVideo: true
+        },
+        () => {
+          videoRef = this.webcam.current.video;
+          console.log("this.webcam", videoRef);
+          videoRef.addEventListener("play", () => {
+            console.log("on webcam video play");
+            const displaySize = {
+              width: videoRef.width,
+              height: videoRef.height
+            };
+            this.startCapture();
+            this.webCameraFaceDetectionInterval = setInterval(async () => {
+              const detections = await faceapi.detectAllFaces(
+                videoRef,
+                new faceapi.TinyFaceDetectorOptions()
+              );
+              //.withFaceLandmarks();
+              // .withFaceExpressions();
+              console.log("detections", detections);
+              if (detections.length === 1) {
+                console.log("One face found");
+                this.setState({
+                  faceStatus: "One face found"
+                });
+                //this.capture();
+              } else if (detections.length > 1) {
+                console.log("More than one face found");
+                this.setState({
+                  faceStatus: "More than one face found"
+                });
+              } else {
+                console.log("Face not found");
+                this.setState({
+                  faceStatus: "Face not found"
+                });
+              }
+            }, 1000);
+          });
+        }
+      );
+    } else {
+      console.log("Models are not loaded");
+      setTimeout(() => {
+        this.checkModelsLoaded();
+      }, 2000);
+    }
+  };
+
+  setInputDevice = () => {
+    navigator.mediaDevices.enumerateDevices().then(async devices => {
+      let inputDevice = await devices.filter(
+        device => device.kind === "videoinput"
+      );
+      console.log("inputDevice", inputDevice);
     });
-  }
+  };
+
+  startCapture = () => {
+    this.imageCaptureTimer = setInterval(() => {
+      this.capture();
+    }, imageCaptureInterval);
+  };
+
+  capture = async () => {
+    if (!!this.webcam.current) {
+      if(this.state.faceStatus === "One face found")
+      {
+        // One face found
+      }else{
+        // Not one face
+      }
+      captured_img_src = await this.webcam.current.getScreenshot();
+      console.log("captured_img_src", captured_img_src);
+      let temp_captured_src = captured_img_src.split(",");
+      console.log("temp_captured_src", temp_captured_src[0]);
+      console.log("temp_captured_src", temp_captured_src[1]);
+      const { user } = this.props.rootTree;
+      let cameraData = {
+        playerid: user.userId,
+        game_name: game_index,
+        timestamp: new Date().getTime().toString(),
+        encoded_image: temp_captured_src[1].toString()
+      };
+      apiCall
+        .imageDataUpload(JSON.stringify(cameraData))
+        .then(res => {
+          console.log("TCL: App -> componentDidMount -> rsp", res);
+          if (res.status === 200) {
+            console.log("camera data successfully uploaded");
+          }
+        })
+        .catch(err => {
+          console.log("TCL: App -> componentDidMount -> err", err);
+          console.log(err.response);
+          // const { status, data } = err.response;
+        });
+    }
+  };
 
   componentWillUnmount() {
     this.fullScreenRef = null;
+    this.clearAllTimers();
     //window.removeEventListener("resize", this.OnDimensionChange);
   }
 
@@ -239,6 +398,21 @@ class ReactUnityBridge extends Component {
                 backgroundColor: "#fff"
               }}
             >
+              {this.state.faceStatus && (
+                <Typography>
+                  <b>FaceDetection:</b> {this.state.faceStatus}
+                </Typography>
+              )}
+              {this.state.startVideo && (
+                <Webcam
+                  audio={false}
+                  width={WIDTH}
+                  height={HEIGHT}
+                  ref={this.webcam}
+                  screenshotFormat="image/jpeg"
+                  videoConstraints={videoConstraints}
+                />
+              )}
               <Unity
                 unityContent={this.unityContent}
                 width="100%"
@@ -259,9 +433,9 @@ class ReactUnityBridge extends Component {
            
           </DialogTitle> */}
               <DialogContent>
-                <CircleToBlockLoading size="small" ></CircleToBlockLoading>
+                <CircleToBlockLoading size="small"></CircleToBlockLoading>
                 <Box align="center">
-                <Typography> Loading game..</Typography>
+                  <Typography> Loading game..</Typography>
                 </Box>
               </DialogContent>
             </Dialog>

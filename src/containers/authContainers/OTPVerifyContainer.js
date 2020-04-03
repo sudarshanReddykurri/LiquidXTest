@@ -137,7 +137,7 @@ class OTPVerifyContainer extends Component {
                           res
                         );
                         actions.setSubmitting(false);
-                        if (res.status == 200) {
+                        if (res.status === 200) {
                           //jumpTo("/updatePassword");
                           this.props.history.push({
                             pathname: `/updatePassword/${this.props.match.params.emailId}/${values.otp}`,

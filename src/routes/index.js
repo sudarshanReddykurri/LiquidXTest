@@ -29,6 +29,7 @@ import SetNewPasswordContainer from "../containers/authContainers/SetNewPassword
 import ReactUnityBridge from "../containers/assessmentsModulesContainer/reactUnityBridge";
 import AudioTest from "../audioModule/AudioTest";
 import VideoInterview from "../videoModule/VideoInterview";
+import FaceCapture from "../containers/faceCaptureContainer/FaceCapture";
 //import { registerNav } from "../services/navigation";
 // Although the page does not ever refresh, notice how
 // React Router keeps the URL up to date as you navigate
@@ -77,6 +78,7 @@ const AppRoutes = forwardRef((props, ref) => {
           path="/updatePassword/:emailId/:otp"
           component={SetNewPasswordContainer}
         />
+        <PrivateRoute path="/image_register" component={FaceCapture} />
         <PrivateRoute path="/home" component={AssessmentHomeContainer} />
         <PrivateRoute path="/about" component={AboutContainer} />
         <PrivateRoute path="/am" component={AssessmentModules} />

@@ -245,6 +245,10 @@ const UserModel = types
       });
     }
 
+    function updateRegisterImages(isImagesRegistered){
+      self.registrationImages = isImagesRegistered;
+    }
+
     function clearAllAssessments() {
       self.assessments.length = 0;
     }
@@ -253,7 +257,7 @@ const UserModel = types
       getParent(self, 2).remove(self);
     }
 
-    return { updateUser, newAssessment, clearAllAssessments, remove };
+    return { updateUser, newAssessment, updateRegisterImages, clearAllAssessments, remove };
   })
   .views(self => {
     // Here Memoization takes place and Memoization increases performance

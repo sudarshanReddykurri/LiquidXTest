@@ -18,7 +18,7 @@ import {
 import { inject, observer } from "mobx-react";
 import { Redirect, Link } from "react-router-dom";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
-import { Formik,Form } from "formik";
+import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
 import apiCall from "../../services/apiCalls/apiService";
@@ -150,7 +150,7 @@ class LoginContainer extends Component {
                   .then(res => {
                     console.log("TCL: App -> componentDidMount -> rsp", res);
                     actions.setSubmitting(false);
-                    if (res.status == 200) {
+                    if (res.status === 200) {
                       const { rootTree } = this.props;
                       if (!rootTree) return null;
                       let userData = res.data.data;
@@ -172,7 +172,12 @@ class LoginContainer extends Component {
                       );
 
                       authService.setToken(userData.auth_token);
-                      this.props.history.push("/home");
+                      if (userData.registrationImages) {
+                        this.props.history.push("/home");
+                      } else {
+                        this.props.history.push("/image_register");
+                      }
+
                       //jumpTo("/home");
                     }
                   })
@@ -189,64 +194,66 @@ class LoginContainer extends Component {
               }}
               render={formikProps => (
                 <React.Fragment>
-                <Form>
-                  <TextField
-                    variant="outlined"
-                    margin="normal"
-                    required
-                    fullWidth
-                    id="email"
-                    label="Email Address"
-                    name="email"
-                    autoComplete="email"
-                    autoFocus
-                    helperText={
-                      formikProps.touched.email ? formikProps.errors.email : ""
-                    }
-                    error={
-                      formikProps.touched.email &&
-                      Boolean(formikProps.errors.email)
-                    }
-                    onChange={formikProps.handleChange("email")}
-                  />
-                  <TextField
-                    variant="outlined"
-                    margin="normal"
-                    required
-                    fullWidth
-                    name="password"
-                    label="Password"
-                    type="password"
-                    id="password"
-                    autoComplete="current-password"
-                    helperText={
-                      formikProps.touched.password
-                        ? formikProps.errors.password
-                        : ""
-                    }
-                    error={
-                      formikProps.touched.password &&
-                      Boolean(formikProps.errors.password)
-                    }
-                    onChange={formikProps.handleChange("password")}
-                  />
-                  {/* <FormControlLabel
+                  <Form>
+                    <TextField
+                      variant="outlined"
+                      margin="normal"
+                      required
+                      fullWidth
+                      id="email"
+                      label="Email Address"
+                      name="email"
+                      autoComplete="email"
+                      autoFocus
+                      helperText={
+                        formikProps.touched.email
+                          ? formikProps.errors.email
+                          : ""
+                      }
+                      error={
+                        formikProps.touched.email &&
+                        Boolean(formikProps.errors.email)
+                      }
+                      onChange={formikProps.handleChange("email")}
+                    />
+                    <TextField
+                      variant="outlined"
+                      margin="normal"
+                      required
+                      fullWidth
+                      name="password"
+                      label="Password"
+                      type="password"
+                      id="password"
+                      autoComplete="current-password"
+                      helperText={
+                        formikProps.touched.password
+                          ? formikProps.errors.password
+                          : ""
+                      }
+                      error={
+                        formikProps.touched.password &&
+                        Boolean(formikProps.errors.password)
+                      }
+                      onChange={formikProps.handleChange("password")}
+                    />
+                    {/* <FormControlLabel
           control={<Checkbox value="remember" color="primary" />}
           label="Remember me"
         /> */}
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    color="primary"
-                    className={classes.submit}
-                    onClick={formikProps.handleSubmit}
-                    disabled={formikProps.isSubmitting}
-                    // component={Link}
-                    // to="/about"
-                  >
-                    Login
-                  </Button>
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      color="primary"
+                      className={classes.submit}
+                      onClick={formikProps.handleSubmit}
+                      disabled={formikProps.isSubmitting}
+                      // component={Link}
+                      // to="/about"
+                    >
+                      Login
+                    </Button>
                   </Form>
                 </React.Fragment>
               )}

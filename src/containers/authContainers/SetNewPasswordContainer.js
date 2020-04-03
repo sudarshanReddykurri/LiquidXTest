@@ -115,104 +115,109 @@ class SetNewPasswordContainer extends Component {
             Please update your new password here
           </Typography>
           {/* <form className={classes.form} noValidate> */}
-            <Formik
-              initialValues={{ password: "", confirmPassword: "" }}
-              validationSchema={validationSchema}
-              onSubmit={(values, actions) => {
-                console.log("values", values);
-                let payload = {
-                  email_id: this.props.match.params.emailId,
-                  otp: this.props.match.params.otp,
-                  passwd: values.confirmPassword
-                };
-                actions.setFieldTouched("password");
-                actions.setFieldTouched("confirmPassword");
-                actions.setSubmitting(true);
-                apiCall
-                  .afterOTPUpdateResetPassword(payload)
-                  .then(res => {
-                    console.log("TCL: App -> componentDidMount -> rsp", res);
-                    actions.setSubmitting(false);
-                    if (res.status === 200) {
-                      data.login_id = this.props.match.params.emailId;
-                      data.passwd = values.password;
-                      apiCall
-                        .userLogin(data)
-                        .then(response => {
+          <Formik
+            initialValues={{ password: "", confirmPassword: "" }}
+            validationSchema={validationSchema}
+            onSubmit={(values, actions) => {
+              console.log("values", values);
+              let payload = {
+                email_id: this.props.match.params.emailId,
+                otp: this.props.match.params.otp,
+                passwd: values.confirmPassword
+              };
+              actions.setFieldTouched("password");
+              actions.setFieldTouched("confirmPassword");
+              actions.setSubmitting(true);
+              apiCall
+                .afterOTPUpdateResetPassword(payload)
+                .then(res => {
+                  console.log("TCL: App -> componentDidMount -> rsp", res);
+                  actions.setSubmitting(false);
+                  if (res.status === 200) {
+                    data.login_id = this.props.match.params.emailId;
+                    data.passwd = values.password;
+                    apiCall
+                      .userLogin(data)
+                      .then(response => {
+                        console.log(
+                          "TCL: App -> componentDidMount -> rsp",
+                          response
+                        );
+                        // actions.setSubmitting(false);
+                        if (response.status === 200) {
+                          const { rootTree } = this.props;
+                          if (!rootTree) return null;
+                          let userData = response.data.data;
                           console.log(
-                            "TCL: App -> componentDidMount -> rsp",
-                            response
+                            "TCL: LoginContainer -> render -> userData",
+                            userData
                           );
-                          // actions.setSubmitting(false);
-                          if (response.status == 200) {
-                            const { rootTree } = this.props;
-                            if (!rootTree) return null;
-                            let userData = response.data.data;
-                            console.log(
-                              "TCL: LoginContainer -> render -> userData",
-                              userData
-                            );
 
-                            rootTree.user.updateUser(
-                              userData.userId,
-                              userData.fullName,
-                              userData.emailId,
-                              userData.gender,
-                              parseInt(userData.mobileNo),
-                              userData.DOB,
-                              userData.registrationImages,
-                              "",
-                              userData.acc_lvl
-                            );
+                          rootTree.user.updateUser(
+                            userData.userId,
+                            userData.fullName,
+                            userData.emailId,
+                            userData.gender,
+                            parseInt(userData.mobileNo),
+                            userData.DOB,
+                            userData.registrationImages,
+                            "",
+                            userData.acc_lvl
+                          );
 
-                            authService.setToken(userData.auth_token);
+                          authService.setToken(userData.auth_token);
+                          if (userData.registrationImages) {
                             this.props.history.push("/home");
-                            //jumpTo("/home");
+                          } else {
+                            this.props.history.push("/image_register");
                           }
-                        })
-                        .catch(err => {
-                          console.log(
-                            "TCL: App -> componentDidMount -> err",
-                            err
-                          );
-                          console.log(err.response);
-                          const { status, data } = err.response;
-                          this.alertRef.handleOpenDialog(
-                            `Failed processing request`,
-                            data.message
-                          );
-                          actions.setSubmitting(false);
-                        });
-                      //jumpTo("/otpverify");
-                    }
-                  })
-                  .catch(err => {
-                    console.log("TCL: App -> componentDidMount -> err", err);
-                    console.log(err.response);
-                    const { status, data } = err.response;
-                    this.alertRef.handleOpenDialog(
-                      `Failed processing request`,
-                      data.message
-                    );
-                    actions.setSubmitting(false);
-                  });
 
-                // apiCall
-                //   .forgotPassword(data)
-                //   .then(res => {
-                //     console.log("TCL: App -> componentDidMount -> rsp", res);
-                //     actions.setSubmitting(false);
-                //     if (res.status == 200) {
-                //       jumpTo("/otpverify");
-                //     }
-                //   })
-                //   .catch(err => {
-                //     console.log("TCL: App -> componentDidMount -> err", err);
-                //     actions.setSubmitting(false);
-                //   });
-              }}
-              render={formikProps => (
-                <React.Fragment>
+                          //jumpTo("/home");
+                        }
+                      })
+                      .catch(err => {
+                        console.log(
+                          "TCL: App -> componentDidMount -> err",
+                          err
+                        );
+                        console.log(err.response);
+                        const { status, data } = err.response;
+                        this.alertRef.handleOpenDialog(
+                          `Failed processing request`,
+                          data.message
+                        );
+                        actions.setSubmitting(false);
+                      });
+                    //jumpTo("/otpverify");
+                  }
+                })
+                .catch(err => {
+                  console.log("TCL: App -> componentDidMount -> err", err);
+                  console.log(err.response);
+                  const { status, data } = err.response;
+                  this.alertRef.handleOpenDialog(
+                    `Failed processing request`,
+                    data.message
+                  );
+                  actions.setSubmitting(false);
+                });
+
+              // apiCall
+              //   .forgotPassword(data)
+              //   .then(res => {
+              //     console.log("TCL: App -> componentDidMount -> rsp", res);
+              //     actions.setSubmitting(false);
+              //     if (res.status == 200) {
+              //       jumpTo("/otpverify");
+              //     }
+              //   })
+              //   .catch(err => {
+              //     console.log("TCL: App -> componentDidMount -> err", err);
+              //     actions.setSubmitting(false);
+              //   });
+            }}
+            render={formikProps => (
+              <React.Fragment>
                 <Form>
                   <TextField
                     variant="outlined"
@@ -269,10 +274,10 @@ class SetNewPasswordContainer extends Component {
                   >
                     Submit
                   </Button>
-                  </Form>
-                </React.Fragment>
-              )}
-            />
+                </Form>
+              </React.Fragment>
+            )}
+          />
           {/* </form> */}
         </div>
       </Container>

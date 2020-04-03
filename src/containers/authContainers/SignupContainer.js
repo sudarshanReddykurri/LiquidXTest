@@ -148,7 +148,11 @@ class SignupContainer extends Component {
               alt="PerspectAI Logo"
               class={classes.avatar}
             />
-            <Typography component="h1" variant="h5" style={{marginBottom: 10}}>
+            <Typography
+              component="h1"
+              variant="h5"
+              style={{ marginBottom: 10 }}
+            >
               Sign up
             </Typography>
             {/* <form className={classes.form} noValidate> */}
@@ -227,7 +231,7 @@ class SignupContainer extends Component {
                                   res
                                 );
                                 actions.setSubmitting(false);
-                                if (res.status == 200) {
+                                if (res.status === 200) {
                                   const { rootTree } = this.props;
                                   if (!rootTree) return null;
                                   let userData = res.data.data;
@@ -249,7 +253,12 @@ class SignupContainer extends Component {
                                   );
 
                                   authService.setToken(userData.auth_token);
-                                  this.props.history.push("/home");
+                                  if (userData.registrationImages) {
+                                    this.props.history.push("/home");
+                                  } else {
+                                    this.props.history.push("/image_register");
+                                  }
+
                                   //jumpTo("/home");
                                 }
                               })
