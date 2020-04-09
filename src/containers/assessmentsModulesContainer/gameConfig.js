@@ -3,8 +3,8 @@ export const GameConfigModules = {
     gameObjectToCall: "ZonaSpawnManager",
     jsonPath: "GameBuilds/SpaceRaceBuild/Build/SpaceRaceBuild.json",
     unityLoaderPath: "GameBuilds/SpaceRaceBuild/Build/UnityLoader.js",
-    width: 540,
-    height: 960
+    width: 480,
+    height: 720
   },
   "mob-02": {
     gameObjectToCall: "OddOneOutLogic",
@@ -66,36 +66,36 @@ export const GameConfigModules = {
     gameObjectToCall: "MSM",
     jsonPath: "GameBuilds/TsmBuild/Build/TsmBuild.json",
     unityLoaderPath: "GameBuilds/TsmBuild/Build/UnityLoader.js",
-    width: 540,
-    height: 960
+    width: 480,
+    height: 720
   },
   "mob-11": {
     gameObjectToCall: "Wrapper",
     jsonPath: "GameBuilds/MotivesBuild/Build/MotivesBuild.json",
     unityLoaderPath: "GameBuilds/MotivesBuild/Build/UnityLoader.js",
-    width: 540,
-    height: 960
+    width: 432,
+    height: 768
   },
   "mob-16-l1": {
     gameObjectToCall: "MSM",
     jsonPath: "GameBuilds/TsmBuild/Build/TsmBuild.json",
     unityLoaderPath: "GameBuilds/TsmBuild/Build/UnityLoader.js",
-    width: 540,
-    height: 960
+    width: 432,
+    height: 768
   },
   "mob-16-l2": {
     gameObjectToCall: "MSM",
     jsonPath: "GameBuilds/TsmBuild/Build/TsmBuild.json",
     unityLoaderPath: "GameBuilds/TsmBuild/Build/UnityLoader.js",
-    width: 540,
-    height: 960
+    width: 432,
+    height: 768
   },
   "mob-16-l3": {
     gameObjectToCall: "MSM",
     jsonPath: "GameBuilds/TsmBuild/Build/TsmBuild.json",
     unityLoaderPath: "GameBuilds/TsmBuild/Build/UnityLoader.js",
-    width: 540,
-    height: 960
+    width: 432,
+    height: 768
   },
   "mob-17": {
     gameObjectToCall: "vis_man",
@@ -108,22 +108,22 @@ export const GameConfigModules = {
     gameObjectToCall: "GameLogic",
     jsonPath: "GameBuilds/BigBrainBuild/Build/BigBrainBuild.json",
     unityLoaderPath: "GameBuilds/BigBrainBuild/Build/UnityLoader.js",
-    width: 540,
-    height: 960
+    width: 480,
+    height: 720
   },
   "mob-19": {
     gameObjectToCall: "LowaGT",
     jsonPath:
       "GameBuilds/FreightTransportBuild/Build/FreightTransportBuild.json",
     unityLoaderPath: "GameBuilds/FreightTransportBuild/Build/UnityLoader.js",
-    width: 540,
-    height: 960
+    width: 480,
+    height: 720
   },
   "mob-21": {
     gameObjectToCall: "mcq_logic",
     jsonPath: "GameBuilds/CodeTestBuild/Build/CodeTestBuild.json",
     unityLoaderPath: "GameBuilds/CodeTestBuild/Build/UnityLoader.js",
-    width: 540,
-    height: 960
+    width: 480,
+    height: 720
   }
 };

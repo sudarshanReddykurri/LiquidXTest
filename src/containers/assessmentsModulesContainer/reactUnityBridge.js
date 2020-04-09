@@ -233,7 +233,10 @@ class ReactUnityBridge extends Component {
     // Hey, a popstate event happened!
     window.addEventListener("popstate", () => {
       //history.go(1);
-      window.location.reload();
+     // window.location.reload();
+     this.setState({
+       startVideo: false
+     })
     });
 
     // Check game_index if not empty then only render unity

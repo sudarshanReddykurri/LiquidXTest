@@ -18,7 +18,7 @@ import {
   Link,
   Slide,
   Dialog,
-  withStyles
+  withStyles,
 } from "@material-ui/core";
 // import Logo from "../assets/4-04.png";
 import NavBar from "../../shared/NavBar";
@@ -32,12 +32,13 @@ import apiCall from "../../services/apiCalls/apiService";
 import CountDownCard from "../../components/CountDownCard";
 import GameCard from "../../components/GameCard";
 import ModalWindow from "../../components/ModalWindow";
+import { PageViewOnlyPath, Event } from "../../analytics/Tracking";
 
 const screens = {
   LOADING: "loading_screen",
   SHOWMODULES: "show_modules_screen",
   ACTIVATETIMER: "show_activate_timer_screen",
-  DEACTIVATETIMER: "show_deactivate_timer_screen"
+  DEACTIVATETIMER: "show_deactivate_timer_screen",
 };
 
 // const GameData = Modules;
@@ -54,7 +55,7 @@ let game_play_order = [
   "mob-08",
   "mob-03",
   "mob-07",
-  "mob-04"
+  "mob-04",
 ];
 
 let not_supported_games = ["mob-12", "mob-20"];
@@ -73,7 +74,7 @@ class AssessmentModules extends Component {
       currentScreenName: "loading_screen",
       activationTime: -1,
       expiryTime: -1,
-      final_module_data: []
+      final_module_data: [],
     };
     this.modalRef = null;
     this.onActivateAssessments = this.onActivateAssessments.bind(this);
@@ -141,7 +142,7 @@ class AssessmentModules extends Component {
     const { user } = this.props.rootTree;
     apiCall
       .getAssessmentModules(user.userId, user.currentAssessment.assessmentId)
-      .then(res => {
+      .then((res) => {
         console.log(
           "TCL: AssessmentModules -> fetchAssessmentModules -> res",
           res.data,
@@ -154,7 +155,7 @@ class AssessmentModules extends Component {
             games_to_play,
             completed_games,
             activation_time,
-            end_date
+            end_date,
           } = res.data;
           user.currentAssessment.clear_games();
           user.currentAssessment.setup_games(
@@ -187,7 +188,7 @@ class AssessmentModules extends Component {
       "TCL: AssessmentModules -> setModuleOrder -> game_to_unlock",
       game_to_unlock
     );
-    currentAssessment.game_play_order.map(game_key => {
+    currentAssessment.game_play_order.map((game_key) => {
       console.log(" module_data[game_key]" + game_key);
       let complete_game_index_found = currentAssessment.complete_games.indexOf(
         game_key
@@ -214,7 +215,7 @@ class AssessmentModules extends Component {
     //currentAssessment.update_games_to_play(temp_module_data);
     this.state.final_module_data.length = 0;
     this.setState({
-      final_module_data: this.state.final_module_data.concat(temp_module_data)
+      final_module_data: this.state.final_module_data.concat(temp_module_data),
     });
     console.log(
       "TCL: AssessmentModules -> setModuleOrder -> this.state.final_module_data",
@@ -227,9 +228,15 @@ class AssessmentModules extends Component {
     console.log("onUserLogout");
     //let hello = localStorage.getItem("@rootStoreKey");
     //console.log("TCL: AssessmentHomeContainer -> onUserLogout -> hello", hello.user);
-    authService.logout().then(res => {
+    authService.logout().then((res) => {
       console.log("TCL: AssessmentModules -> onUserLogout -> res", res);
+      Event(
+        "USER",
+        "User logged out in a particular assessment screen",
+        "AssessmentModules"
+      );
       this.props.history.push("/login");
+      PageViewOnlyPath("/login");
       window.location.reload();
     });
   };
@@ -267,12 +274,15 @@ class AssessmentModules extends Component {
       switch (temp_module_source) {
         case "unity":
           this.props.history.push("/game");
+          PageViewOnlyPath("/game");
           break;
         case "react":
           if (currentAssessment.current_game === "mob-20") {
             this.props.history.push("/language_test");
+            PageViewOnlyPath("/language_test");
           } else if (currentAssessment.current_game === "mob-12") {
             this.props.history.push("/video_interview");
+            PageViewOnlyPath("/video_interview");
           } else {
             //
           }
@@ -280,6 +290,11 @@ class AssessmentModules extends Component {
         default:
           break;
       }
+      Event(
+        "USER",
+        `User entered the game  ${currentAssessment.current_game}`,
+        "AssessmentModules"
+      );
     }
 
     this.modalRef.handleClose();
@@ -287,7 +302,7 @@ class AssessmentModules extends Component {
 
   handleClose = () => {
     this.setState({
-      open: false
+      open: false,
     });
   };
 
@@ -316,7 +331,7 @@ class AssessmentModules extends Component {
       const days = NoData ? "-" : Math.floor(res / 86400);
       this.setState({
         expiryTime:
-          days + "d  " + hours + "h  " + minutes + "m  " + seconds + "s  "
+          days + "d  " + hours + "h  " + minutes + "m  " + seconds + "s  ",
       });
       console.log("timerId", timerId);
       if (timeLeft <= 0) {
@@ -353,7 +368,7 @@ class AssessmentModules extends Component {
 
     console.log("screenToRender", screenToRender);
     this.setState({
-      currentScreenName: screenToRender
+      currentScreenName: screenToRender,
     });
   }
 
@@ -386,10 +401,11 @@ class AssessmentModules extends Component {
             color="primary"
             className={classes.bread_crumb_link}
             // href="/home"
-            onClick={event => {
+            onClick={(event) => {
               event.preventDefault();
               console.log("Go to assessments page");
               this.props.history.push("/home");
+              PageViewOnlyPath("/home");
               // this.props.history.goBack();
             }}
           >
@@ -486,7 +502,7 @@ class AssessmentModules extends Component {
         <React.Fragment>
           <CssBaseline />
           <ModalWindow
-            ref={modalRef => {
+            ref={(modalRef) => {
               this.modalRef = modalRef;
             }}
             proceedToGame={this.startModule}
@@ -528,40 +544,40 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const styles = theme => ({
+const styles = (theme) => ({
   icon: {
-    marginRight: theme.spacing(2)
+    marginRight: theme.spacing(2),
   },
   /* heroContent: {
     backgroundColor: theme.palette.background.paper,
     padding: theme.spacing(8, 0, 6)
   }, */
   heroButtons: {
-    marginTop: theme.spacing(4)
+    marginTop: theme.spacing(4),
   },
   cardGrid: {
     paddingTop: theme.spacing(8),
-    paddingBottom: theme.spacing(8)
+    paddingBottom: theme.spacing(8),
   },
   card: {
     height: "100%",
     display: "flex",
-    flexDirection: "column"
+    flexDirection: "column",
   },
   cardMedia: {
     height: "180px",
-    paddingTop: "10px" // 16:9
+    paddingTop: "10px", // 16:9
   },
   cardContent: {
     flexGrow: 1,
     justifyContent: "center",
-    margin: "auto"
+    margin: "auto",
   },
   bread_crumb_link: {
     "&:hover": {
-      cursor: "pointer"
+      cursor: "pointer",
       // color: "#000"
-    }
+    },
   },
   /*  footer: {
     backgroundColor: theme.palette.background.paper,
@@ -569,44 +585,44 @@ const styles = theme => ({
   }, */
   "@global": {
     body: {
-      backgroundColor: theme.palette.common.white
+      backgroundColor: theme.palette.common.white,
     },
     ul: {
       margin: 0,
-      padding: 0
+      padding: 0,
     },
     li: {
-      listStyle: "none"
-    }
+      listStyle: "none",
+    },
   },
   appBar: {
     borderBottom: `1px solid ${theme.palette.divider}`,
-    position: "relative"
+    position: "relative",
   },
   toolbar: {
-    borderBottom: `1px solid ${theme.palette.divider}`
+    borderBottom: `1px solid ${theme.palette.divider}`,
   },
   toolbarTitle: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   logoTitle: {
     marginLeft: theme.spacing(2),
-    flex: 1
+    flex: 1,
   },
   link: {
-    margin: theme.spacing(1, 1.5)
+    margin: theme.spacing(1, 1.5),
   },
   heroContent: {
-    padding: theme.spacing(1, 0, 6)
+    padding: theme.spacing(1, 0, 6),
   },
   cardHeader: {
-    backgroundColor: theme.palette.grey[200]
+    backgroundColor: theme.palette.grey[200],
   },
   cardPricing: {
     display: "flex",
     justifyContent: "center",
     alignItems: "baseline",
-    marginBottom: theme.spacing(2)
+    marginBottom: theme.spacing(2),
   },
   footer: {
     borderTop: `1px solid ${theme.palette.divider}`,
@@ -615,9 +631,9 @@ const styles = theme => ({
     paddingBottom: theme.spacing(3),
     [theme.breakpoints.up("sm")]: {
       paddingTop: theme.spacing(6),
-      paddingBottom: theme.spacing(6)
-    }
-  }
+      paddingBottom: theme.spacing(6),
+    },
+  },
 });
 
 export default withRouter(

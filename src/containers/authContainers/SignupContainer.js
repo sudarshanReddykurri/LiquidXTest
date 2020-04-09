@@ -36,6 +36,7 @@ import apiCall from "../../services/apiCalls/apiService";
 import authService from "../../services/auth/authService";
 import { withRouter } from "react-router-dom";
 import AlertDialog from "../../components/AlertDialog";
+import {  PageViewOnlyPath, Event } from "../../analytics/Tracking";
 
 const styles = theme => ({
   paper: {
@@ -195,6 +196,9 @@ class SignupContainer extends Component {
                   email_id: values.email,
                   key: values.licenseKey
                 };
+
+                Event("USER", "User tries to signup", "SignupContainer");
+
                 apiCall
                   .licenceVerify(license_data_payload)
                   .then(res => {
@@ -255,8 +259,10 @@ class SignupContainer extends Component {
                                   authService.setToken(userData.auth_token);
                                   if (userData.registrationImages) {
                                     this.props.history.push("/home");
+                                    PageViewOnlyPath("/home");
                                   } else {
                                     this.props.history.push("/image_register");
+                                    PageViewOnlyPath("/image_register");
                                   }
 
                                   //jumpTo("/home");

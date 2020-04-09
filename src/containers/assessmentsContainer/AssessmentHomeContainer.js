@@ -13,7 +13,7 @@ import {
   MenuItem,
   Select,
   withStyles,
-  Typography
+  Typography,
 } from "@material-ui/core";
 import { inject, observer } from "mobx-react";
 import NavBar from "../../shared/NavBar";
@@ -23,6 +23,7 @@ import apiCall from "../../services/apiCalls/apiService";
 import authService from "../../services/auth/authService";
 import { withRouter } from "react-router-dom";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
+import { PageViewOnlyPath, Event } from "../../analytics/Tracking";
 
 const ITEM_HEIGHT = 48;
 
@@ -31,7 +32,7 @@ const filterOptions = [
   { filterName: "Active Assessments", filterValue: "active" },
   { filterName: "Expiry Time (Ascending)", filterValue: "expiryTime" },
   { filterName: "Company (A-Z)", filterValue: "companyName" },
-  { filterName: "Assessment (A-Z)", filterValue: "assessmentName" }
+  { filterName: "Assessment (A-Z)", filterValue: "assessmentName" },
   // { filterName: "assessmentId", filterValue: "assessmentId"}
 ];
 class AssessmentHomeContainer extends Component {
@@ -43,7 +44,7 @@ class AssessmentHomeContainer extends Component {
       isFetchingAssessment: false,
       totalAssessments: 0,
       filterSelection: "active",
-      showFilterMenu: false
+      showFilterMenu: false,
     };
     console.log("AssessmentHomeContainer");
     this.fetchAssessments();
@@ -52,7 +53,7 @@ class AssessmentHomeContainer extends Component {
 
   componentDidMount() {}
 
-  filterChange = event => {
+  filterChange = (event) => {
     console.log(
       "TCL: AssessmentHomeContainer -> filterChange -> event",
       event.target.value
@@ -63,13 +64,13 @@ class AssessmentHomeContainer extends Component {
 
   openFilterMenu = () => {
     this.setState({
-      showFilterMenu: true
+      showFilterMenu: true,
     });
   };
 
   closeFilterMenu = () => {
     this.setState({
-      showFilterMenu: false
+      showFilterMenu: false,
     });
   };
 
@@ -81,7 +82,7 @@ class AssessmentHomeContainer extends Component {
 
     apiCall
       .getUserAssessments(rootTree.user.userId)
-      .then(res => {
+      .then((res) => {
         console.log(
           "TCL: AssessmentHomeContainer -> fetchAssessments -> rsp",
           res
@@ -90,7 +91,7 @@ class AssessmentHomeContainer extends Component {
         if (res.status == 200) {
           rootTree.user.clearAllAssessments();
           this.setState({
-            totalAssessments: res.data.assessmnets.length
+            totalAssessments: res.data.assessmnets.length,
           });
           res.data.assessmnets.map((assessment, index) => {
             console.log(
@@ -112,11 +113,11 @@ class AssessmentHomeContainer extends Component {
           );
           // rootTree.user.sortAssessments();
           this.setState({
-            isLoading: false
+            isLoading: false,
           });
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(
           "TCL: AssessmentHomeContainer -> fetchAssessments -> err",
           err
@@ -140,7 +141,7 @@ class AssessmentHomeContainer extends Component {
       assessmentName,
       companyName,
       expiryTime,
-      logoUrl
+      logoUrl,
     } = assessment;
     rootTree.user.currentAssessment.update_current_assessment_info(
       assessmentId,
@@ -150,7 +151,13 @@ class AssessmentHomeContainer extends Component {
       logoUrl
     );
     // Store.AssessmentId = assmt_id;
+    Event(
+      "USER",
+      `User pressed assessment ${assessmentId}`,
+      "AssessmentHomeContainer"
+    );
     this.props.history.push("/am");
+    PageViewOnlyPath("/am");
   }
 
   // openAssessments(assessmentDetails){
@@ -161,9 +168,15 @@ class AssessmentHomeContainer extends Component {
     console.log("onUserLogout");
     //let hello = localStorage.getItem("@rootStoreKey");
     //console.log("TCL: AssessmentHomeContainer -> onUserLogout -> hello", hello.user);
-    authService.logout().then(res => {
+    authService.logout().then((res) => {
       console.log("TCL: AssessmentHomeContainer -> onUserLogout -> res", res);
+      Event(
+        "USER",
+        "User logged out in all assessments assigned screen",
+        "AssessmentHomeContainer"
+      );
       this.props.history.push("/login");
+      PageViewOnlyPath("/login");
       window.location.reload();
     });
   };
@@ -209,32 +222,32 @@ class AssessmentHomeContainer extends Component {
               </Typography>
               <br />
               {/* {this.state.totalAssessments >= 2 && ( */}
-                <Box align="right">
-                  <FormControl className={classes.formControl}>
-                    <InputLabel id="demo-controlled-open-select-label">
-                      Sort By
-                    </InputLabel>
-                    <Select
-                      labelId="demo-controlled-open-select-label"
-                      id="demo-controlled-open-select"
-                      open={this.state.showFilterMenu}
-                      onClose={this.closeFilterMenu}
-                      onOpen={this.openFilterMenu}
-                      value={this.state.filterSelection}
-                      onChange={this.filterChange}
-                    >
-                      {filterOptions.map(option => (
-                        <MenuItem
-                          key={option.filterName}
-                          onClick={this.filterChange}
-                          value={option.filterValue}
-                        >
-                          {option.filterName}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
+              <Box align="right">
+                <FormControl className={classes.formControl}>
+                  <InputLabel id="demo-controlled-open-select-label">
+                    Sort By
+                  </InputLabel>
+                  <Select
+                    labelId="demo-controlled-open-select-label"
+                    id="demo-controlled-open-select"
+                    open={this.state.showFilterMenu}
+                    onClose={this.closeFilterMenu}
+                    onOpen={this.openFilterMenu}
+                    value={this.state.filterSelection}
+                    onChange={this.filterChange}
+                  >
+                    {filterOptions.map((option) => (
+                      <MenuItem
+                        key={option.filterName}
+                        onClick={this.filterChange}
+                        value={option.filterValue}
+                      >
+                        {option.filterName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
               {/* )} */}
               <Grid
                 container
@@ -271,28 +284,28 @@ class AssessmentHomeContainer extends Component {
   }
 }
 
-const styles = theme => ({
+const styles = (theme) => ({
   progressBar: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     paddingTop: theme.spacing(3),
-    paddingBottom: theme.spacing(3)
+    paddingBottom: theme.spacing(3),
   },
   cardGrid: {
     paddingTop: theme.spacing(8),
-    paddingBottom: theme.spacing(8)
+    paddingBottom: theme.spacing(8),
   },
   pageTitle: {
     paddingTop: theme.spacing(3),
     paddingBottom: theme.spacing(3),
-    textAlign: "center"
+    textAlign: "center",
   },
   formControl: {
     margin: theme.spacing(1),
-    minWidth: 120
-  }
+    minWidth: 120,
+  },
 });
 
 export default withRouter(

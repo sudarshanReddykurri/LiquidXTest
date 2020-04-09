@@ -13,7 +13,7 @@ import {
   Paper,
   SvgIcon,
   Typography,
-  withStyles
+  withStyles,
 } from "@material-ui/core";
 import { inject, observer } from "mobx-react";
 import DescriptionIcon from "@material-ui/icons/Description";
@@ -22,70 +22,71 @@ import { deepOrange, deepPurple } from "@material-ui/core/colors";
 import { withRouter } from "react-router-dom";
 import NavBar from "../shared/NavBar";
 import authService from "../services/auth/authService";
+import { initGA, PageViewOnlyPath, Event } from "../analytics/Tracking";
 
-const styles = theme => ({
+const styles = (theme) => ({
   card: {
     maxWidth: 450,
     margin: "auto",
     transition: "0.3s",
     boxShadow: "0 8px 40px -12px rgba(0,0,0,0.3)",
     "&:hover": {
-      boxShadow: "0 16px 70px -12.125px rgba(0,0,0,0.3)"
-    }
+      boxShadow: "0 16px 70px -12.125px rgba(0,0,0,0.3)",
+    },
   },
   cardGrid: {
     paddingTop: theme.spacing(8),
     paddingBottom: theme.spacing(8),
-    flexGrow: 1
+    flexGrow: 1,
   },
   avatar: {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    paddingTop: theme.spacing.unit * 3
+    paddingTop: theme.spacing.unit * 3,
   },
   margin: {
-    margin: theme.spacing(1)
+    margin: theme.spacing(1),
   },
   media: {
-    paddingTop: "56.25%"
+    paddingTop: "56.25%",
   },
   content: {
     textAlign: "center",
-    padding: theme.spacing.unit * 3
+    padding: theme.spacing.unit * 3,
   },
   divider: {
-    margin: `${theme.spacing.unit * 1}px 0`
+    margin: `${theme.spacing.unit * 1}px 0`,
   },
   heading: {
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
   subheading: {
-    lineHeight: 1.8
+    lineHeight: 1.8,
   },
   avatar: {
     display: "inline-block",
     border: "2px solid white",
     "&:not(:first-of-type)": {
-      marginLeft: -theme.spacing.unit
-    }
+      marginLeft: -theme.spacing.unit,
+    },
   },
   controls: {
     display: "flex",
     alignItems: "center",
     padding: theme.spacing(0, 3, 2, 3),
-    justifyContent: "space-between"
+    justifyContent: "space-between",
   },
   logout: {},
   purple: {
     color: theme.palette.getContrastText(deepPurple[500]),
-    backgroundColor: deepPurple[500]
+    backgroundColor: deepPurple[500],
   },
   large: {
     width: theme.spacing(9),
     height: theme.spacing(9),
-    fontSize: 28
-  }
+    fontSize: 28,
+  },
 });
 
 class AboutContainer extends Component {
@@ -94,7 +95,7 @@ class AboutContainer extends Component {
     this.state = {
       name: "demo",
       emailId: "demo@gmail.com",
-      number: "9191919191"
+      number: "9191919191",
     };
     // console.log("this.props.rootTree",this.props)
   }
@@ -103,9 +104,11 @@ class AboutContainer extends Component {
     console.log("onUserLogout");
     //let hello = localStorage.getItem("@rootStoreKey");
     //console.log("TCL: AssessmentHomeContainer -> onUserLogout -> hello", hello.user);
-    authService.logout().then(res => {
+    authService.logout().then((res) => {
       console.log("TCL: AssessmentHomeContainer -> onUserLogout -> res", res);
+      Event("USER", "User logged out in about screen", "AboutContainer");
       this.props.history.push("/login");
+      PageViewOnlyPath("/login");
       window.location.reload();
     });
   };

@@ -16,7 +16,7 @@ import {
   Select,
   withStyles,
   Typography,
-  LinearProgress
+  LinearProgress,
 } from "@material-ui/core";
 import NavBar from "../../shared/NavBar";
 import Webcam from "react-webcam";
@@ -29,7 +29,7 @@ import MoreVertIcon from "@material-ui/icons/MoreVert";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import { red, green } from "@material-ui/core/colors";
 import * as faceapi from "face-api.js";
-
+import { PageViewOnlyPath, Event } from "../../analytics/Tracking";
 // Import face profile
 const JSON_PROFILE = require("./descriptors/bnk48.json");
 
@@ -39,7 +39,7 @@ const inputSize = 160;
 
 const screens = {
   FACECAPTUREINSTRUCTIONS: "face_capture_instruction_screen",
-  FACECAPTURE: "face_capture_screen"
+  FACECAPTURE: "face_capture_screen",
 };
 
 let captured_img_src = null;
@@ -48,7 +48,7 @@ let ImageData = [];
 let capture_image_obj = {
   playerid: "",
   image_number: 0,
-  encoded_image: ""
+  encoded_image: "",
 };
 
 let videoRef = null;
@@ -70,7 +70,7 @@ class FaceCapture extends Component {
       faceStatus: "Initializing camera. Please wait..",
       captureStatus: "",
       isUploadingImages: false,
-      isSuccessfullyUploaded: false
+      isSuccessfullyUploaded: false,
     };
     this.isModelsLoaded = false;
     //this.onModelsLoadedSucces = this.onModelsLoadedSucces.bind(this);
@@ -98,7 +98,7 @@ class FaceCapture extends Component {
       this.setInputDevice();
       this.setState(
         {
-          startVideo: true
+          startVideo: true,
         },
         () => {
           videoRef = this.webcam.current.video;
@@ -107,7 +107,7 @@ class FaceCapture extends Component {
             console.log("on webcam video play");
             const displaySize = {
               width: videoRef.width,
-              height: videoRef.height
+              height: videoRef.height,
             };
 
             this.webCameraFaceDetectionInterval = setInterval(async () => {
@@ -121,18 +121,18 @@ class FaceCapture extends Component {
               if (detections.length === 1) {
                 console.log("One face found");
                 this.setState({
-                  faceStatus: "One face found"
+                  faceStatus: "One face found",
                 });
                 this.capture();
               } else if (detections.length > 1) {
                 console.log("More than one face found");
                 this.setState({
-                  faceStatus: "More than one face found"
+                  faceStatus: "More than one face found",
                 });
               } else {
                 console.log("Face not found");
                 this.setState({
-                  faceStatus: "Face not found"
+                  faceStatus: "Face not found",
                 });
               }
             }, 1000);
@@ -148,9 +148,9 @@ class FaceCapture extends Component {
   };
 
   setInputDevice = () => {
-    navigator.mediaDevices.enumerateDevices().then(async devices => {
+    navigator.mediaDevices.enumerateDevices().then(async (devices) => {
       let inputDevice = await devices.filter(
-        device => device.kind === "videoinput"
+        (device) => device.kind === "videoinput"
       );
       console.log("inputDevice", inputDevice);
       //   if (inputDevice.length < 2) {
@@ -184,22 +184,20 @@ class FaceCapture extends Component {
         //console.log("captured_img_src", captured_img_src["base64"]);
         this.setState(
           {
-            imagesCapturedCount: this.state.imagesCapturedCount + 1
+            imagesCapturedCount: this.state.imagesCapturedCount + 1,
           },
           () => {
             console.log("imagesCapturedCount", this.state.imagesCapturedCount);
+            console.log("this.props.rootTree.user", this.props.rootTree.user);
             this.setState({
-              captureStatus: `Capturing  Image Count ${this.state.imagesCapturedCount}`
+              captureStatus: `Capturing  Image Count ${this.state.imagesCapturedCount}`,
             });
-            ImageData.push(
-              '{"playerid":"' +
-                "sudarshankurri19900101_01" +
-                '", "image_number":' +
-                this.state.imagesCapturedCount +
-                ', "encoded_image": "' +
-                temp_captured_src[1].toString() +
-                '"}'
-            );
+            let temp_image_data_obj = {
+              playerid: this.props.rootTree.user.userId,
+              image_number: this.state.imagesCapturedCount,
+              encoded_image: temp_captured_src[1].toString(),
+            };
+            ImageData.push(JSON.stringify(temp_image_data_obj));
           }
         );
       } else {
@@ -208,7 +206,7 @@ class FaceCapture extends Component {
           this.setState(
             {
               faceStatus: null,
-              captureStatus: "Capture Completed!"
+              captureStatus: "Capture Completed!",
             },
             () => {
               this.sendImagesToCloud();
@@ -238,14 +236,15 @@ class FaceCapture extends Component {
       this.setState({
         startVideo: false,
         captureStatus: "Uploading captured images to cloud...!",
-        isUploadingImages: true
+        isUploadingImages: true,
       });
-      apiCall.userFaceRegister(JSON.stringify(ImageData)).then(res => {
+      console.log("ImageData", ImageData);
+      apiCall.userFaceRegister(JSON.stringify(ImageData)).then((res) => {
         console.log("res", res);
         if (res.status === 200) {
           this.setState({
             captureStatus: "Successfully uploaded...!",
-            isSuccessfullyUploaded: true
+            isSuccessfullyUploaded: true,
           });
           this.props.rootTree.user.updateRegisterImages(true);
           // Take the user to the Assessment Scren
@@ -253,7 +252,7 @@ class FaceCapture extends Component {
           console.log("Issue in the api call images/register");
         }
         this.setState({
-          isUploadingImages: false
+          isUploadingImages: false,
         });
       });
     } else {
@@ -272,11 +271,13 @@ class FaceCapture extends Component {
     }
     this.setState(
       {
-        currentScreenName: level_name
+        currentScreenName: level_name,
       },
       () => {
         if (this.state.currentScreenName === "face_capture_screen") {
-          this.checkModelsLoaded();
+          setTimeout(() => {
+            this.checkModelsLoaded();
+          }, 2000);
         }
       }
     );
@@ -287,7 +288,7 @@ class FaceCapture extends Component {
     let videoConstraints = {
       width: WIDTH,
       height: HEIGHT,
-      facingMode: "user"
+      facingMode: "user",
     };
     const { rootTree } = this.props;
     switch (level_name) {
@@ -306,7 +307,7 @@ class FaceCapture extends Component {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center"
+                alignItems: "center",
               }}
             >
               <img
@@ -357,12 +358,19 @@ class FaceCapture extends Component {
                 variant="contained"
                 size="small"
                 color="primary"
-                onClick={() => this.goToLevel("face_capture_screen")}
+                onClick={() => {
+                  Event(
+                    "USER",
+                    "User read face capture instructions",
+                    "FaceCapture"
+                  );
+                  this.goToLevel("face_capture_screen");
+                }}
                 className={classes.roundedButton}
                 style={{
                   minWidth: 200,
                   margin: 10,
-                  marginTop: 50
+                  marginTop: 50,
                 }}
               >
                 Proceed
@@ -385,7 +393,7 @@ class FaceCapture extends Component {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center"
+                alignItems: "center",
               }}
             >
               {this.state.faceStatus && (
@@ -398,7 +406,7 @@ class FaceCapture extends Component {
                 <div
                   style={{
                     width: WIDTH,
-                    height: HEIGHT
+                    height: HEIGHT,
                   }}
                 >
                   <div style={{ position: "relative", width: WIDTH }}>
@@ -411,6 +419,7 @@ class FaceCapture extends Component {
                           ref={this.webcam}
                           screenshotFormat="image/jpeg"
                           videoConstraints={videoConstraints}
+                          className={classes.camStyles}
                         />
                       </div>
                     ) : null}
@@ -434,13 +443,19 @@ class FaceCapture extends Component {
                     size="small"
                     color="primary"
                     onClick={() => {
+                      Event(
+                        "USER",
+                        "Use face capture upload success proceed",
+                        "FaceCapture"
+                      );
                       this.props.history.push("/home");
+                      PageViewOnlyPath("/home");
                     }}
                     className={classes.roundedButton}
                     style={{
                       minWidth: 200,
                       margin: 10,
-                      marginTop: 100
+                      marginTop: 100,
                     }}
                   >
                     Proceed
@@ -455,7 +470,7 @@ class FaceCapture extends Component {
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
-                      marginTop: 100
+                      marginTop: 100,
                     }}
                   >
                     uploading...
@@ -479,9 +494,11 @@ class FaceCapture extends Component {
     console.log("onUserLogout");
     //let hello = localStorage.getItem("@rootStoreKey");
     //console.log("TCL: AssessmentHomeContainer -> onUserLogout -> hello", hello.user);
-    authService.logout().then(res => {
+    authService.logout().then((res) => {
       console.log("TCL: AssessmentHomeContainer -> onUserLogout -> res", res);
+      Event("USER", "User logged out in face capture", "FaceCapture");
       this.props.history.push("/login");
+      PageViewOnlyPath("/login");
       window.location.reload();
     });
   };
@@ -500,30 +517,32 @@ class FaceCapture extends Component {
   }
 }
 
-
-const styles = theme => ({
+const styles = (theme) => ({
   progressBar: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     paddingTop: theme.spacing(3),
-    paddingBottom: theme.spacing(3)
+    paddingBottom: theme.spacing(3),
   },
   cardGrid: {
     paddingTop: theme.spacing(8),
-    paddingBottom: theme.spacing(8)
+    paddingBottom: theme.spacing(8),
   },
   pageTitle: {
     paddingTop: theme.spacing(3),
     paddingBottom: theme.spacing(3),
-    textAlign: "center"
+    textAlign: "center",
   },
   roundedButton: {
     borderRadius: 25,
     padding: theme.spacing(1, 3),
-    textTransform: "capitalize"
-  }
+    textTransform: "capitalize",
+  },
+  camStyles: {
+    opacity: 1,
+  },
 });
 
 export default withRouter(

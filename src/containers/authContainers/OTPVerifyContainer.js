@@ -15,7 +15,7 @@ import {
   Grid,
   Box,
   Typography,
-  withStyles
+  withStyles,
 } from "@material-ui/core";
 
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
@@ -25,49 +25,50 @@ import perspectAILogo from "../../assets/images/PerspectAI-Logo.svg";
 import apiCall from "../../services/apiCalls/apiService";
 import { withRouter } from "react-router-dom";
 import AlertDialog from "../../components/AlertDialog";
+import { PageViewOnlyPath, Event } from "../../analytics/Tracking";
 
-const styles = theme => ({
+const styles = (theme) => ({
   paper: {
     marginTop: theme.spacing(8),
     display: "flex",
     flexDirection: "column",
-    alignItems: "center"
+    alignItems: "center",
   },
   avatar: {
     margin: theme.spacing(10),
     width: "80%",
-    height: "80%"
+    height: "80%",
     // backgroundColor: theme.palette.secondary.main,
   },
   card: {
     width: 345,
     height: 120,
-    maxWidth: 345
+    maxWidth: 345,
   },
   media: {
     width: "100%",
-    height: "100%"
+    height: "100%",
   },
   form: {
     width: "100%", // Fix IE 11 issue.
-    marginTop: theme.spacing(1)
+    marginTop: theme.spacing(1),
   },
   submit: {
-    margin: theme.spacing(3, 0, 2)
-  }
+    margin: theme.spacing(3, 0, 2),
+  },
 });
 
 const validationSchema = Yup.object().shape({
   otp: Yup.number()
     .required("OTP is a required field")
-    .min(6, "Please enter a valid OTP code")
+    .min(6, "Please enter a valid OTP code"),
 });
 
 class OTPVerifyContainer extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showOTPField: false
+      showOTPField: false,
     };
   }
 
@@ -78,7 +79,7 @@ class OTPVerifyContainer extends Component {
       this.props.history.location.state.from === "/forgot"
     ) {
       this.setState({
-        showOTPField: true
+        showOTPField: true,
       });
     }
   }
@@ -90,7 +91,7 @@ class OTPVerifyContainer extends Component {
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <AlertDialog
-          ref={alertRef => {
+          ref={(alertRef) => {
             this.alertRef = alertRef;
           }}
         />
@@ -123,46 +124,42 @@ class OTPVerifyContainer extends Component {
                 The recovery code is sent to your registered email-id
               </Typography>
               {/* <form className={classes.form} noValidate> */}
-                <Formik
-                  initialValues={{ otp: "" }}
-                  validationSchema={validationSchema}
-                  onSubmit={(values, actions) => {
-                    actions.setFieldTouched("otp");
-                    actions.setSubmitting(true);
-                    apiCall
-                      .verifyOTP(this.props.match.params.emailId, values.otp)
-                      .then(res => {
-                        console.log(
-                          "TCL: App -> componentDidMount -> rsp",
-                          res
-                        );
-                        actions.setSubmitting(false);
-                        if (res.status === 200) {
-                          //jumpTo("/updatePassword");
-                          this.props.history.push({
-                            pathname: `/updatePassword/${this.props.match.params.emailId}/${values.otp}`,
-                            state: {
-                              from: this.props.location.pathname
-                            }
-                          });
-                        }
-                      })
-                      .catch(err => {
-                        console.log(
-                          "TCL: App -> componentDidMount -> err",
-                          err
-                        );
-                        console.log(err.response);
-                        const { status, data } = err.response;
-                        this.alertRef.handleOpenDialog(
-                          `Failed processing request`,
-                          data.message
-                        );
-                        actions.setSubmitting(false);
-                      });
-                  }}
-                  render={formikProps => (
-                    <React.Fragment>
+              <Formik
+                initialValues={{ otp: "" }}
+                validationSchema={validationSchema}
+                onSubmit={(values, actions) => {
+                  actions.setFieldTouched("otp");
+                  actions.setSubmitting(true);
+                  Event("USER", "User enters OTP", "OTPVerifyContainer");
+                  apiCall
+                    .verifyOTP(this.props.match.params.emailId, values.otp)
+                    .then((res) => {
+                      console.log("TCL: App -> componentDidMount -> rsp", res);
+                      actions.setSubmitting(false);
+                      if (res.status === 200) {
+                        //jumpTo("/updatePassword");
+                        this.props.history.push({
+                          pathname: `/updatePassword/${this.props.match.params.emailId}/${values.otp}`,
+                          state: {
+                            from: this.props.location.pathname,
+                          },
+                        });
+                        PageViewOnlyPath("/updatePassword");
+                      }
+                    })
+                    .catch((err) => {
+                      console.log("TCL: App -> componentDidMount -> err", err);
+                      console.log(err.response);
+                      const { status, data } = err.response;
+                      this.alertRef.handleOpenDialog(
+                        `Failed processing request`,
+                        data.message
+                      );
+                      actions.setSubmitting(false);
+                    });
+                }}
+                render={(formikProps) => (
+                  <React.Fragment>
                     <Form>
                       <TextField
                         variant="outlined"
@@ -198,10 +195,10 @@ class OTPVerifyContainer extends Component {
                       >
                         Submit
                       </Button>
-                      </Form>
-                    </React.Fragment>
-                  )}
-                />
+                    </Form>
+                  </React.Fragment>
+                )}
+              />
               {/* </form> */}
             </Fragment>
           )}

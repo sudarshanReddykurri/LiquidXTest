@@ -13,7 +13,7 @@ import {
   Grid,
   Box,
   Typography,
-  withStyles
+  withStyles,
 } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
@@ -24,43 +24,44 @@ import apiCall from "../../services/apiCalls/apiService";
 // import jumpTo from "../../services/navigation";
 import { withRouter } from "react-router-dom";
 import AlertDialog from "../../components/AlertDialog";
+import { PageViewOnlyPath, Event } from "../../analytics/Tracking";
 
-const styles = theme => ({
+const styles = (theme) => ({
   paper: {
     marginTop: theme.spacing(8),
     display: "flex",
     flexDirection: "column",
-    alignItems: "center"
+    alignItems: "center",
   },
   avatar: {
     margin: theme.spacing(10),
     width: "80%",
-    height: "80%"
+    height: "80%",
     // backgroundColor: theme.palette.secondary.main,
   },
   card: {
     width: 345,
     height: 120,
-    maxWidth: 345
+    maxWidth: 345,
   },
   media: {
     width: "100%",
-    height: "100%"
+    height: "100%",
   },
   form: {
     width: "100%", // Fix IE 11 issue.
-    marginTop: theme.spacing(1)
+    marginTop: theme.spacing(1),
   },
   submit: {
-    margin: theme.spacing(3, 0, 2)
-  }
+    margin: theme.spacing(3, 0, 2),
+  },
 });
 
 const validationSchema = Yup.object({
   email: Yup.string("Enter your email")
     .trim()
     .email("Enter a valid email")
-    .required("Email is a required field")
+    .required("Email is a required field"),
 });
 
 class ForgotPasswordContainer extends Component {
@@ -76,7 +77,7 @@ class ForgotPasswordContainer extends Component {
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <AlertDialog
-          ref={alertRef => {
+          ref={(alertRef) => {
             this.alertRef = alertRef;
           }}
         />
@@ -104,22 +105,28 @@ class ForgotPasswordContainer extends Component {
                 let data = { email_id: values.email.toLowerCase().trim() };
                 actions.setFieldTouched("email");
                 actions.setSubmitting(true);
+                Event(
+                  "USER",
+                  "User enter email after forgotting the password",
+                  "ForgotPasswordContainer"
+                );
                 apiCall
                   .forgotPassword(data)
-                  .then(res => {
+                  .then((res) => {
                     console.log("TCL: App -> componentDidMount -> rsp", res);
                     actions.setSubmitting(false);
                     if (res.status === 200) {
                       this.props.history.push({
                         pathname: `/otpverify/${data.email_id}`,
                         state: {
-                          from: this.props.location.pathname
-                        }
+                          from: this.props.location.pathname,
+                        },
                       });
+                      PageViewOnlyPath("/otpverify");
                       //jumpTo(`/otpverify/${data.email_id}`);
                     }
                   })
-                  .catch(err => {
+                  .catch((err) => {
                     console.log("TCL: App -> componentDidMount -> err", err);
                     console.log(err.response);
                     const { status, data } = err.response;
@@ -130,41 +137,43 @@ class ForgotPasswordContainer extends Component {
                     actions.setSubmitting(false);
                   });
               }}
-              render={formikProps => (
+              render={(formikProps) => (
                 <React.Fragment>
-                <Form>
-                  <TextField
-                    variant="outlined"
-                    margin="normal"
-                    required
-                    fullWidth
-                    id="email"
-                    label="Email Address"
-                    name="email"
-                    autoComplete="email"
-                    autoFocus
-                    helperText={
-                      formikProps.touched.email ? formikProps.errors.email : ""
-                    }
-                    error={
-                      formikProps.touched.email &&
-                      Boolean(formikProps.errors.email)
-                    }
-                    onChange={formikProps.handleChange("email")}
-                  />
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    color="primary"
-                    className={classes.submit}
-                    onClick={formikProps.handleSubmit}
-                    disabled={formikProps.isSubmitting}
-                    // component={Link}
-                    // to="/otpverify"
-                  >
-                    Submit
-                  </Button>
+                  <Form>
+                    <TextField
+                      variant="outlined"
+                      margin="normal"
+                      required
+                      fullWidth
+                      id="email"
+                      label="Email Address"
+                      name="email"
+                      autoComplete="email"
+                      autoFocus
+                      helperText={
+                        formikProps.touched.email
+                          ? formikProps.errors.email
+                          : ""
+                      }
+                      error={
+                        formikProps.touched.email &&
+                        Boolean(formikProps.errors.email)
+                      }
+                      onChange={formikProps.handleChange("email")}
+                    />
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      color="primary"
+                      className={classes.submit}
+                      onClick={formikProps.handleSubmit}
+                      disabled={formikProps.isSubmitting}
+                      // component={Link}
+                      // to="/otpverify"
+                    >
+                      Submit
+                    </Button>
                   </Form>
                 </React.Fragment>
               )}

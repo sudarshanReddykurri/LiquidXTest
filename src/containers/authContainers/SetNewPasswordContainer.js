@@ -26,6 +26,7 @@ import authService from "../../services/auth/authService";
 import { inject, observer } from "mobx-react";
 import { withRouter } from "react-router-dom";
 import AlertDialog from "../../components/AlertDialog";
+import {  PageViewOnlyPath, Event } from "../../analytics/Tracking";
 
 const styles = theme => ({
   paper: {
@@ -128,6 +129,9 @@ class SetNewPasswordContainer extends Component {
               actions.setFieldTouched("password");
               actions.setFieldTouched("confirmPassword");
               actions.setSubmitting(true);
+
+              Event("USER", "User tries to reset password", "SetNewPasswordContainer");
+
               apiCall
                 .afterOTPUpdateResetPassword(payload)
                 .then(res => {
@@ -168,8 +172,10 @@ class SetNewPasswordContainer extends Component {
                           authService.setToken(userData.auth_token);
                           if (userData.registrationImages) {
                             this.props.history.push("/home");
+                            PageViewOnlyPath("/home");
                           } else {
                             this.props.history.push("/image_register");
+                            PageViewOnlyPath("/image_register");
                           }
 
                           //jumpTo("/home");

@@ -13,7 +13,7 @@ import {
   Grid,
   Box,
   Typography,
-  withStyles
+  withStyles,
 } from "@material-ui/core";
 import { inject, observer } from "mobx-react";
 import { Redirect, Link } from "react-router-dom";
@@ -29,38 +29,39 @@ import { withRouter } from "react-router-dom";
 import AlertDialog from "../../components/AlertDialog";
 import Footer from "../../components/Footer";
 import StickyFooter from "../../shared/StickyFooter";
+import { PageViewOnlyPath, Event } from "../../analytics/Tracking";
 // import "../../styles.css";
 // This will give history prop which we can use to navigate
 
-const styles = theme => ({
+const styles = (theme) => ({
   paper: {
     marginTop: theme.spacing(8),
     display: "flex",
     flexDirection: "column",
-    alignItems: "center"
+    alignItems: "center",
   },
   avatar: {
     margin: theme.spacing(10),
     width: "80%",
-    height: "80%"
+    height: "80%",
     // backgroundColor: theme.palette.secondary.main,
   },
   card: {
     width: 345,
     height: 120,
-    maxWidth: 345
+    maxWidth: 345,
   },
   media: {
     width: "100%",
-    height: "100%"
+    height: "100%",
   },
   form: {
     width: "100%", // Fix IE 11 issue.
-    marginTop: theme.spacing(1)
+    marginTop: theme.spacing(1),
   },
   submit: {
-    margin: theme.spacing(3, 0, 2)
-  }
+    margin: theme.spacing(3, 0, 2),
+  },
 });
 
 const validationSchema = Yup.object({
@@ -70,7 +71,7 @@ const validationSchema = Yup.object({
     .required("Email is a required field"),
   password: Yup.string("")
     .min(2, "Password must contain at least 2 characters")
-    .required("Password is a required field")
+    .required("Password is a required field"),
 });
 let data = {
   device_id: "web",
@@ -82,7 +83,7 @@ let data = {
   os_version: "web",
   screen_dpi: "web",
   version: "2.01.10",
-  fcm_token: ""
+  fcm_token: "",
 };
 class LoginContainer extends Component {
   constructor(props) {
@@ -114,7 +115,7 @@ class LoginContainer extends Component {
         <Container component="main" maxWidth="xs">
           <CssBaseline />
           <AlertDialog
-            ref={alertRef => {
+            ref={(alertRef) => {
               this.alertRef = alertRef;
             }}
           />
@@ -127,7 +128,7 @@ class LoginContainer extends Component {
                 margin: 40,
                 marginTop: 140,
                 marginBottom: 60,
-                width: "80%"
+                width: "80%",
               }}
             />
 
@@ -145,9 +146,11 @@ class LoginContainer extends Component {
                 data.login_id = values.email;
                 data.passwd = values.password;
 
+                Event("USER", "User tries to login", "LoginContainer");
+
                 apiCall
                   .userLogin(data)
-                  .then(res => {
+                  .then((res) => {
                     console.log("TCL: App -> componentDidMount -> rsp", res);
                     actions.setSubmitting(false);
                     if (res.status === 200) {
@@ -174,14 +177,16 @@ class LoginContainer extends Component {
                       authService.setToken(userData.auth_token);
                       if (userData.registrationImages) {
                         this.props.history.push("/home");
+                        PageViewOnlyPath("/home");
                       } else {
                         this.props.history.push("/image_register");
+                        PageViewOnlyPath("/image_register");
                       }
 
                       //jumpTo("/home");
                     }
                   })
-                  .catch(err => {
+                  .catch((err) => {
                     console.log("TCL: App -> componentDidMount -> err", err);
                     console.log(err.response);
                     const { status, data } = err.response;
@@ -192,7 +197,7 @@ class LoginContainer extends Component {
                     actions.setSubmitting(false);
                   });
               }}
-              render={formikProps => (
+              render={(formikProps) => (
                 <React.Fragment>
                   <Form>
                     <TextField
@@ -275,7 +280,7 @@ class LoginContainer extends Component {
         </Container>
         <div
           style={{
-            height: 250
+            height: 250,
           }}
         ></div>
         <Container component="main" maxWidth="xs">
@@ -284,7 +289,7 @@ class LoginContainer extends Component {
         </Container>
         <div
           style={{
-            height: 50
+            height: 50,
           }}
         ></div>
         <StickyFooter />
