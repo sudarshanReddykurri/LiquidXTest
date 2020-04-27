@@ -30,6 +30,7 @@ import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import { red, green } from "@material-ui/core/colors";
 import * as faceapi from "face-api.js";
 import { PageViewOnlyPath, Event } from "../../analytics/Tracking";
+import { Link } from "react-router-dom";
 // Import face profile
 const JSON_PROFILE = require("./descriptors/bnk48.json");
 
@@ -52,6 +53,14 @@ let capture_image_obj = {
 };
 
 let videoRef = null;
+let inputDevice = null;
+
+let videoConstraints = {
+  width: WIDTH,
+  height: HEIGHT,
+  //facingMode: "user",
+  deviceId: { exact: "" },
+};
 
 class FaceCapture extends Component {
   constructor(props) {
@@ -71,12 +80,16 @@ class FaceCapture extends Component {
       captureStatus: "",
       isUploadingImages: false,
       isSuccessfullyUploaded: false,
+      isCameraExists: false,
     };
+    this.cameraIds = [];
+    this.currCameraIndex = 0;
     this.isModelsLoaded = false;
     //this.onModelsLoadedSucces = this.onModelsLoadedSucces.bind(this);
   }
 
   componentDidMount = async () => {
+    this.setInputDevice();
     const MODEL_URL = process.env.PUBLIC_URL + "/models";
     await faceapi.loadTinyFaceDetectorModel(MODEL_URL);
     //await faceapi.loadFaceLandmarkTinyModel(MODEL_URL);
@@ -95,7 +108,7 @@ class FaceCapture extends Component {
   checkModelsLoaded = () => {
     if (this.isModelsLoaded) {
       console.log("Models loaded successfully");
-      this.setInputDevice();
+      //this.setInputDevice();
       this.setState(
         {
           startVideo: true,
@@ -149,9 +162,18 @@ class FaceCapture extends Component {
 
   setInputDevice = () => {
     navigator.mediaDevices.enumerateDevices().then(async (devices) => {
-      let inputDevice = await devices.filter(
+      inputDevice = await devices.filter(
         (device) => device.kind === "videoinput"
       );
+      if (inputDevice.length >= 1) {
+        this.setState({
+          isCameraExists: true,
+        });
+      }
+      for (let i = 0; i < inputDevice.length; i++) {
+        this.cameraIds.push(inputDevice.deviceId);
+        console.log("inputDevice.facingMode", inputDevice);
+      }
       console.log("inputDevice", inputDevice);
       //   if (inputDevice.length < 2) {
       //     await this.setState({
@@ -265,6 +287,7 @@ class FaceCapture extends Component {
       case screens.FACECAPTUREINSTRUCTIONS:
         break;
       case screens.FACECAPTURE:
+        videoConstraints.deviceId.exact = this.cameraIds[this.currCameraIndex];
         break;
       default:
         break;
@@ -285,11 +308,7 @@ class FaceCapture extends Component {
 
   getScreen(level_name, classes) {
     // Here we can set the template to render based on level_name
-    let videoConstraints = {
-      width: WIDTH,
-      height: HEIGHT,
-      facingMode: "user",
-    };
+
     const { rootTree } = this.props;
     switch (level_name) {
       case screens.FACECAPTUREINSTRUCTIONS:
@@ -375,6 +394,25 @@ class FaceCapture extends Component {
               >
                 Proceed
               </Button>
+              {!this.state.isCameraExists && (
+                <React.Fragment>
+                  <div
+                    style={{
+                      marginTop: 50,
+                    }}
+                  ></div>
+                  <Typography>
+                    <Box fontSize={12}>
+                      Don't have a camera attached to the device. you can skip
+                      this step
+                    </Box>
+                  </Typography>
+                  <br />
+                  <Typography variant="subtitle2">
+                    <Link to="/">Go to Home</Link>
+                  </Typography>
+                </React.Fragment>
+              )}
             </div>
 
             <br />
@@ -388,12 +426,18 @@ class FaceCapture extends Component {
                 Face Capture Screen
               </Box>
             </Typography>
+            <Box fontSize={16} align="center">
+              <Typography>
+                Please ensure that your entire face fits the camera preview.
+              </Typography>
+            </Box>
 
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
+                marginTop: 20,
               }}
             >
               {this.state.faceStatus && (
@@ -480,6 +524,26 @@ class FaceCapture extends Component {
                       style={{ height: 6, width: 400, marginTop: 20 }}
                     />
                   </div>
+                </React.Fragment>
+              )}
+
+              {!this.state.isCameraExists && (
+                <React.Fragment>
+                  <div
+                    style={{
+                      marginTop: 50,
+                    }}
+                  ></div>
+                  <Typography>
+                    <Box fontSize={12}>
+                      Don't have a camera attached to the device. you can skip
+                      this step
+                    </Box>
+                  </Typography>
+                  <br />
+                  <Typography variant="subtitle2">
+                    <Link to="/">Go to Home</Link>
+                  </Typography>
                 </React.Fragment>
               )}
             </div>

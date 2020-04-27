@@ -21,7 +21,7 @@ import {
   Paper,
   Slider,
   Typography,
-  withStyles
+  withStyles,
 } from "@material-ui/core";
 import StopIcon from "@material-ui/icons/Stop";
 import RecordRTC from "recordrtc";
@@ -31,14 +31,20 @@ import apiCall from "../services/apiCalls/apiService";
 import { red, green } from "@material-ui/core/colors";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import CancelIcon from "@material-ui/icons/Cancel";
-import MicIcon from '@material-ui/icons/Mic';
+import MicIcon from "@material-ui/icons/Mic";
 import { inject, observer } from "mobx-react";
 import { withRouter } from "react-router-dom";
 import AudioAnalyzer from "./AudioAnalyzer";
 // const speedTest = require("speedtest-net");
 
 let recordRTC;
-const mediaConstraints = { video: true, audio: true };
+const videoConstraints = {
+  //facingMode: {exact: "user"},
+  deviceId: {
+    deviceId: { exact: "" },
+  },
+};
+const mediaConstraints = { video: videoConstraints, audio: true };
 // https://github.com/muaz-khan/RecordRTC/wiki/mimeType-and-recorderType
 
 //var mime = 'video/webm; codecs=opus,vp9';
@@ -48,8 +54,9 @@ const recordingOptions = {
   //  mimeType = 'video/webm; codecs=opus,vp8'; //this works for firefox
   mimeType: mime,
   //mimeType: 'video/mp4; codecs="avc1.424028, mp4a.40.2"',
-  bitsPerSecond: 128000
+  bitsPerSecond: 480000,
 };
+
 const toBuffer = require("blob-to-buffer");
 const toArrayBuffer = require("to-arraybuffer");
 
@@ -64,71 +71,71 @@ const screens = {
   RECORDING_SCREEN: "recording_screen",
   UPLOADING_SCREEN: "uploading_screen",
   LAST_VIDEO_UPLOAD_SCREEN: "last_video_upload_screen",
-  GAME_END_SCREEN: "game_end_screen"
+  GAME_END_SCREEN: "game_end_screen",
 };
 
-const styles = theme => ({
+const styles = (theme) => ({
   root: {
     /* margin: 200px; */
     position: "fixed" /* or absolute */,
     top: "50%",
     left: "50%",
-    transform: "translate(-50%, -50%)"
+    transform: "translate(-50%, -50%)",
   },
   paper: {
     //padding: theme.spacing(2),
     margin: "auto",
     width: 600,
     height: 800,
-    maxHeight: 800
+    maxHeight: 800,
   },
   stopButton: {
     minWidth: 100,
     backgroundColor: "#fff",
     borderRadius: 20,
-    textTransform: "capitalize"
+    textTransform: "capitalize",
     //verticalAlign: "middle",
   },
   image: {
     width: 128,
-    height: 128
+    height: 128,
   },
   img: {
     margin: "auto",
     display: "block",
     maxWidth: "100%",
-    maxHeight: "100%"
+    maxHeight: "100%",
   },
   flexFullWidth: {
     display: "flex",
-    width: "100%"
+    width: "100%",
   },
   flexFullHeight: {
     display: "flex",
-    height: "100%"
+    height: "100%",
   },
   flexColumnCenter: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   flexRowCenter: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   roundedButton: {
     borderRadius: 25,
     padding: theme.spacing(1, 3),
-    textTransform: "capitalize"
+    textTransform: "capitalize",
   },
   infoPaper: {
     padding: theme.spacing(1),
     textAlign: "center",
-    color: theme.palette.text.secondary
-  }
+    color: theme.palette.text.secondary,
+  },
 });
 
 function hasGetUserMedia() {
@@ -157,37 +164,37 @@ class VideoInterview extends Component {
           title: "Good Lighting",
           body:
             "Before you start the Interview, find a quiet room with bright lighting.",
-          icon_path: require("../assets/Instructions/01.png")
+          icon_path: require("../assets/Instructions/01.png"),
         },
         {
           title: "Dress Neatly",
           body:
             "Your recruiter can see you, so dress right and remember to look at the camera during the interview.",
-          icon_path: require("../assets/Instructions/02.png")
+          icon_path: require("../assets/Instructions/02.png"),
         },
         {
           title: "High Speed Internet",
           body:
             "Make sure your network signal is good and stable. A high speed internet connection is strongly recommended.",
-          icon_path: require("../assets/Instructions/06.png")
+          icon_path: require("../assets/Instructions/06.png"),
         },
         {
           title: "Face the Camera",
           body: "Face the camera. You are a HERO. - act like one!",
-          icon_path: require("../assets/Instructions/04.png")
+          icon_path: require("../assets/Instructions/04.png"),
         },
         {
           title: "Limited Time",
           body:
             "Clear. Crisp. Creative. These 3 C's are your friends. You have limited time, so use it well.",
-          icon_path: require("../assets/Instructions/05.png")
+          icon_path: require("../assets/Instructions/05.png"),
         },
         {
           title: "Advisory Notice",
           body:
             "It is recommended that users use Wi-Fi wherever possible in order to upload the videos. ",
-          icon_path: require("../assets/Instructions/Notice.png")
-        }
+          icon_path: require("../assets/Instructions/Notice.png"),
+        },
       ],
       slideCounter: 0,
       audioDeviceIds: [],
@@ -201,8 +208,11 @@ class VideoInterview extends Component {
       uploadProgress: 0,
       uploadStatus: "",
       showVideoInterview: false,
-      audio: null
+      audio: null,
+      enableLastScreenNextButton: false,
     };
+    this.cameraIds = [];
+    this.currCameraIndex = 0;
     this.unSubscribeTimer = null;
     this.unSubscribeRecordingTimer = null;
     this.localMediaStream = null;
@@ -222,7 +232,7 @@ class VideoInterview extends Component {
   onGuidelinesPress() {
     if (this.state.slideCounter < this.state.slides.length - 1) {
       this.setState({
-        slideCounter: this.state.slideCounter + 1
+        slideCounter: this.state.slideCounter + 1,
       });
     } else if (this.state.slideCounter === this.state.slides.length - 1) {
       this.gotoLevel("instruction_screen");
@@ -242,14 +252,14 @@ class VideoInterview extends Component {
     if (game_index !== "") {
       this.setState(
         {
-          showVideoInterview: true
+          showVideoInterview: true,
         },
         () => {
           if (!hasGetUserMedia()) {
             alert("getUserMedia() is not supported in your browser");
             return;
           } else {
-            apiCall.getInterviewQuestionsData(user.userId).then(res => {
+            apiCall.getInterviewQuestionsData(user.userId).then((res) => {
               // console.log("Workbench -> componentDidMount -> res", res);
               if (res.data.message === "Success") {
                 console.log(
@@ -259,7 +269,7 @@ class VideoInterview extends Component {
 
                 this.setState(
                   {
-                    questions_data: res.data["questions_list"]
+                    questions_data: res.data["questions_list"],
                   },
                   () => {
                     console.log(
@@ -273,7 +283,7 @@ class VideoInterview extends Component {
                     this.setState(
                       {
                         interview_duration: temp_alloted_time / 60,
-                        renderVideoInterview: true
+                        renderVideoInterview: true,
                       },
                       () => {
                         this.hasCamAndMicrophone();
@@ -299,13 +309,13 @@ class VideoInterview extends Component {
   async getMicrophone() {
     const audio = await navigator.mediaDevices.getUserMedia({
       audio: true,
-      video: false
+      video: false,
     });
     this.setState({ audio });
   }
 
   stopMicrophone() {
-    this.state.audio.getTracks().forEach(track => track.stop());
+    this.state.audio.getTracks().forEach((track) => track.stop());
     this.setState({ audio: null });
   }
 
@@ -324,7 +334,7 @@ class VideoInterview extends Component {
   }
 
   hasCamAndMicrophone() {
-    window.navigator.mediaDevices.enumerateDevices().then(deviceInfos => {
+    window.navigator.mediaDevices.enumerateDevices().then((deviceInfos) => {
       for (let i = 0; i !== deviceInfos.length; ++i) {
         const deviceInfo = deviceInfos[i];
         // console.log(
@@ -339,7 +349,7 @@ class VideoInterview extends Component {
           let current_audio_devices = this.state.audioDeviceIds;
           current_audio_devices.push(deviceInfo.deviceId);
           this.setState({
-            audioDeviceIds: current_audio_devices
+            audioDeviceIds: current_audio_devices,
           });
 
           //   console.log(
@@ -351,9 +361,14 @@ class VideoInterview extends Component {
           let current_video_devices = this.state.videoDeviceIds;
           current_video_devices.push(deviceInfo.deviceId);
           this.setState({
-            videoDeviceIds: current_video_devices
+            videoDeviceIds: current_video_devices,
           });
 
+          this.cameraIds.push(deviceInfo.deviceId);
+          console.log("deviceInfo.facingMode", deviceInfo);
+
+          if (deviceInfo.facingMode === "environment") {
+          }
           //   console.log(
           //     "VideoInterview -> gotDevices -> deviceInfo.label",
           //     deviceInfo.label,
@@ -386,14 +401,17 @@ class VideoInterview extends Component {
 
   startStream() {
     let _this = this;
+    mediaConstraints.video.deviceId.exact = this.cameraIds[
+      this.currCameraIndex
+    ];
     window.navigator.getUserMedia(
       mediaConstraints,
-      stream => {
+      (stream) => {
         this.localMediaStream = stream;
         const video = this.refs.video;
         // localMediaStream = stream;
         video.srcObject = this.localMediaStream;
-        video.onloadedmetadata = function(e) {
+        video.onloadedmetadata = function (e) {
           // console.log("App -> video.onloadedmetadata -> e", e);
           // if (this.state.currentScreenName === "recording_screen") {
 
@@ -404,7 +422,7 @@ class VideoInterview extends Component {
         var mediaStreamTrack = this.localMediaStream.getVideoTracks()[0];
         // localMediaStream.getAudioTracks()[0];
         if (typeof mediaStreamTrack != "undefined") {
-          mediaStreamTrack.onended = function() {
+          mediaStreamTrack.onended = function () {
             //for Chrome.
             errorMessage("Your webcam is busy!");
           };
@@ -414,7 +432,7 @@ class VideoInterview extends Component {
 
         // };
       },
-      error => {
+      (error) => {
         var message;
         switch (error.name) {
           case "NotFoundError":
@@ -443,7 +461,7 @@ class VideoInterview extends Component {
         this.ClearRecordingTimers();
       } else {
         this.setState({
-          answer_timer: this.state.answer_timer - 1
+          answer_timer: this.state.answer_timer - 1,
         });
       }
     }, 1000);
@@ -468,7 +486,7 @@ class VideoInterview extends Component {
   }
 
   stopAndRemoveTrack(mediaStream) {
-    return function(track) {
+    return function (track) {
       track.stop();
       mediaStream.removeTrack(track);
     };
@@ -487,7 +505,7 @@ class VideoInterview extends Component {
     const { user } = this.props.rootTree;
     try {
       if (recordRTC) {
-        recordRTC.stopRecording(audioVideoWebMURL => {
+        recordRTC.stopRecording((audioVideoWebMURL) => {
           const video = this.refs.video;
           video.pause();
           video.srcObject = null;
@@ -512,27 +530,28 @@ class VideoInterview extends Component {
             }
 
             const upload_config = {
-              onUploadProgress: function(progressEvent) {
+              onUploadProgress: function (progressEvent) {
                 var percentCompleted = Math.round(
                   progressEvent.loaded / progressEvent.total
                 );
+                console.log("percentCompleted", percentCompleted);
                 if (percentCompleted < 1) {
                   _this.setState({
                     uploadProgress: percentCompleted,
                     uploadStatus:
-                      "Please wait while we are uploading video to cloud"
+                      "Please wait while we are uploading video to cloud",
                   });
                 } else {
                   _this.setState({
                     uploadProgress: 1,
-                    uploadStatus: "Video Uploaded Successfully"
+                    uploadStatus: "Video Uploaded Successfully",
                   });
                 }
                 console.log(
                   "this.state.uploadProgress",
                   _this.state.uploadProgress
                 );
-              }
+              },
             };
 
             apiCall
@@ -540,7 +559,7 @@ class VideoInterview extends Component {
                 user.userId,
                 `${this.state.question_counter + 1}.mp4`
               )
-              .then(res => {
+              .then((res) => {
                 if (res.status === 200) {
                   let upload_presigned_url = res.data.url;
                   // Upload to s3
@@ -550,7 +569,7 @@ class VideoInterview extends Component {
                       blob,
                       upload_config
                     )
-                    .then(response => {
+                    .then((response) => {
                       console.log(
                         "VideoInterview -> clearAndStopVideoRecording -> response",
                         response
@@ -613,26 +632,31 @@ class VideoInterview extends Component {
   onVideoInterviewFinishApiCall() {
     const { user } = this.props.rootTree;
     let payload = {
-      user_id: user.userId
+      user_id: user.userId,
     };
-    apiCall
-      .videoUploadComplete(payload)
-      .then(response => {
-        console.log("onVideoInterviewFinishApiCall response", response);
-        if (response.status === 200) {
-          console.log("onVideoInterviewFinishApiCall success");
-        } else {
-          console.log("onVideoInterviewFinishApiCall failed");
-        }
-      })
-      .catch(errror => {
-        console.log("onVideoInterviewFinishApiCall errror", errror);
-        console.log(errror.response);
-        let err_resp = errror.response;
-        if (err_resp.status === 404) {
-          console.log("err_resp", err_resp.data.message);
-        }
-      });
+    setTimeout(() => {
+      apiCall
+        .videoUploadComplete(payload)
+        .then((response) => {
+          console.log("onVideoInterviewFinishApiCall response", response);
+          if (response.status === 200) {
+            console.log("onVideoInterviewFinishApiCall success");
+            this.setState({
+              enableLastScreenNextButton: true,
+            });
+          } else {
+            console.log("onVideoInterviewFinishApiCall failed");
+          }
+        })
+        .catch((errror) => {
+          console.log("onVideoInterviewFinishApiCall errror", errror);
+          console.log(errror.response);
+          let err_resp = errror.response;
+          if (err_resp.status === 404) {
+            console.log("err_resp", err_resp.data.message);
+          }
+        });
+    }, 2000);
   }
 
   onFinish() {
@@ -648,7 +672,7 @@ class VideoInterview extends Component {
     if (this.state.question_counter < this.state.questions_data.length - 1) {
       this.setState(
         {
-          question_counter: this.state.question_counter + 1
+          question_counter: this.state.question_counter + 1,
         },
         () => {
           this.gotoLevel("question_screen");
@@ -692,7 +716,7 @@ class VideoInterview extends Component {
           {
             question_timer: temp_question_time,
             uploadProgress: 0,
-            uploadStatus: ""
+            uploadStatus: "",
           },
           () => {
             console.log(
@@ -705,7 +729,7 @@ class VideoInterview extends Component {
                 this.gotoLevel("recording_screen");
               } else {
                 this.setState({
-                  question_timer: this.state.question_timer - 1
+                  question_timer: this.state.question_timer - 1,
                 });
               }
             }, 1000);
@@ -719,7 +743,7 @@ class VideoInterview extends Component {
 
         this.setState(
           {
-            answer_timer: temp_answer_time
+            answer_timer: temp_answer_time,
           },
           () => {
             this.startStream();
@@ -761,7 +785,7 @@ class VideoInterview extends Component {
         break;
     }
     this.setState({
-      currentScreenName: level_name
+      currentScreenName: level_name,
     });
   }
 
@@ -772,13 +796,13 @@ class VideoInterview extends Component {
           <Container
             style={{
               height: "100%",
-              padding: 0
+              padding: 0,
             }}
           >
             <div className={classes.flexFullHeight}>
               <div
                 style={{
-                  flex: 1
+                  flex: 1,
                 }}
               >
                 {/* Left Empty Container */}
@@ -786,20 +810,20 @@ class VideoInterview extends Component {
               <Box
                 className={[classes.flexColumnCenter, classes.flexFullHeight]}
                 style={{
-                  flex: 5
+                  flex: 5,
                 }}
               >
                 <Box
                   className={[classes.flexColumnCenter, classes.flexFullWidth]}
                   style={{
                     flex: 3,
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   <Box
                     style={{
                       marginTop: 0,
-                      height: 350
+                      height: 350,
                     }}
                   >
                     <img
@@ -811,7 +835,7 @@ class VideoInterview extends Component {
                       component="div"
                       style={{
                         marginTop: 10,
-                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
+                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
                       }}
                       variant="h6"
                     >
@@ -823,7 +847,7 @@ class VideoInterview extends Component {
                   className={[classes.flexColumnCenter, classes.flexFullWidth]}
                   style={{
                     flex: 1,
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   <Button
@@ -833,7 +857,7 @@ class VideoInterview extends Component {
                     onClick={() => this.gotoLevel("device_screen")}
                     className={classes.roundedButton}
                     style={{
-                      minWidth: 200
+                      minWidth: 200,
                     }}
                   >
                     Proceed
@@ -842,7 +866,7 @@ class VideoInterview extends Component {
               </Box>
               <div
                 style={{
-                  flex: 1
+                  flex: 1,
                 }}
               >
                 {/* Reft Empty Container */}
@@ -855,13 +879,13 @@ class VideoInterview extends Component {
           <Container
             style={{
               height: "100%",
-              padding: 0
+              padding: 0,
             }}
           >
             <div className={classes.flexFullHeight}>
               <div
                 style={{
-                  flex: 1
+                  flex: 1,
                 }}
               >
                 {/* Left Empty Container */}
@@ -869,26 +893,26 @@ class VideoInterview extends Component {
               <Box
                 className={[classes.flexColumnCenter, classes.flexFullHeight]}
                 style={{
-                  flex: 5
+                  flex: 5,
                 }}
               >
                 <Box
                   className={[classes.flexColumnCenter, classes.flexFullWidth]}
                   style={{
                     flex: 3,
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   <Box
                     style={{
-                      marginTop: -50
+                      marginTop: -50,
                     }}
                   >
                     <Typography
                       component="div"
                       style={{
                         marginTop: 100,
-                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
+                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
                       }}
                       variant="h5"
                     >
@@ -898,7 +922,7 @@ class VideoInterview extends Component {
                       component="div"
                       style={{
                         marginTop: 20,
-                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
+                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
                       }}
                       variant="body1"
                     >
@@ -923,7 +947,7 @@ class VideoInterview extends Component {
                       <Typography
                         component="div"
                         style={{
-                          textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
+                          textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
                         }}
                       >
                         <b>Audio device</b> found:
@@ -961,7 +985,7 @@ class VideoInterview extends Component {
                       <Typography
                         component="div"
                         style={{
-                          textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
+                          textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
                         }}
                       >
                         <b>Video device</b> found:
@@ -999,7 +1023,7 @@ class VideoInterview extends Component {
                   style={{
                     flex: 1,
                     textAlign: "center",
-                    marginTop: -20
+                    marginTop: -20,
                   }}
                 >
                   {this.state.audioDeviceIds.length > 0 &&
@@ -1017,7 +1041,7 @@ class VideoInterview extends Component {
                       onClick={() => this.gotoLevel("mike_screen")}
                       className={classes.roundedButton}
                       style={{
-                        minWidth: 200
+                        minWidth: 200,
                       }}
                     >
                       Proceed
@@ -1035,7 +1059,7 @@ class VideoInterview extends Component {
                         className={classes.roundedButton}
                         style={{
                           minWidth: 200,
-                          marginTop: 10
+                          marginTop: 10,
                         }}
                       >
                         Re-Check
@@ -1046,7 +1070,7 @@ class VideoInterview extends Component {
               </Box>
               <div
                 style={{
-                  flex: 1
+                  flex: 1,
                 }}
               >
                 {/* Reft Empty Container */}
@@ -1059,13 +1083,13 @@ class VideoInterview extends Component {
           <Container
             style={{
               height: "100%",
-              padding: 0
+              padding: 0,
             }}
           >
             <div className={classes.flexFullHeight}>
               <div
                 style={{
-                  flex: 1
+                  flex: 1,
                 }}
               >
                 {/* Left Empty Container */}
@@ -1073,26 +1097,26 @@ class VideoInterview extends Component {
               <Box
                 className={[classes.flexColumnCenter, classes.flexFullHeight]}
                 style={{
-                  flex: 5
+                  flex: 5,
                 }}
               >
                 <Box
                   className={[classes.flexColumnCenter, classes.flexFullWidth]}
                   style={{
                     flex: 3,
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   <Box
                     style={{
-                      marginTop: -50
+                      marginTop: -50,
                     }}
                   >
                     <Typography
                       component="div"
                       style={{
                         marginTop: 100,
-                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
+                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
                       }}
                       variant="h5"
                     >
@@ -1102,7 +1126,7 @@ class VideoInterview extends Component {
                       component="div"
                       style={{
                         marginTop: 20,
-                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
+                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
                       }}
                       variant="body1"
                     >
@@ -1114,7 +1138,7 @@ class VideoInterview extends Component {
                         marginTop: 50,
                         textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
                         texAlign: "left",
-                        lineHeight: 2
+                        lineHeight: 2,
                       }}
                       align="left"
                       variant="body1"
@@ -1138,7 +1162,7 @@ class VideoInterview extends Component {
 
                     <Box
                       style={{
-                        height: 200
+                        height: 200,
                       }}
                     >
                       {this.state.audio ? (
@@ -1155,7 +1179,7 @@ class VideoInterview extends Component {
                       onClick={this.toggleMicrophone}
                       className={classes.roundedButton}
                       style={{
-                        minWidth: 200
+                        minWidth: 200,
                       }}
                     >
                       {this.state.audio
@@ -1169,7 +1193,7 @@ class VideoInterview extends Component {
                   className={[classes.flexColumnCenter, classes.flexFullWidth]}
                   style={{
                     flex: 1,
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   <Button
@@ -1183,7 +1207,7 @@ class VideoInterview extends Component {
                     }}
                     className={classes.roundedButton}
                     style={{
-                      minWidth: 200
+                      minWidth: 200,
                     }}
                   >
                     Proceed
@@ -1192,7 +1216,7 @@ class VideoInterview extends Component {
               </Box>
               <div
                 style={{
-                  flex: 1
+                  flex: 1,
                 }}
               >
                 {/* Reft Empty Container */}
@@ -1207,13 +1231,13 @@ class VideoInterview extends Component {
           <Container
             style={{
               height: "100%",
-              padding: 0
+              padding: 0,
             }}
           >
             <div className={classes.flexFullHeight}>
               <div
                 style={{
-                  flex: 1
+                  flex: 1,
                 }}
               >
                 {/* Left Empty Container */}
@@ -1221,20 +1245,20 @@ class VideoInterview extends Component {
               <Box
                 className={[classes.flexColumnCenter, classes.flexFullHeight]}
                 style={{
-                  flex: 5
+                  flex: 5,
                 }}
               >
                 <Box
                   className={[classes.flexColumnCenter, classes.flexFullWidth]}
                   style={{
                     flex: 3,
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   <Box
                     style={{
                       marginTop: 0,
-                      height: 350
+                      height: 350,
                       //width: 200,
                       //height: imgHeight
                       //boxShadow: "0px 2.8px 2.2px rgba(0, 0, 0, 0.034)"
@@ -1252,7 +1276,7 @@ class VideoInterview extends Component {
                       component="div"
                       style={{
                         marginTop: 30,
-                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
+                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
                       }}
                       variant="h6"
                     >
@@ -1264,7 +1288,7 @@ class VideoInterview extends Component {
                       style={{
                         // lineHeight: 20,
                         marginTop: 40,
-                        textAlign: "center"
+                        textAlign: "center",
                         // height: 80
                       }}
                     >
@@ -1276,7 +1300,7 @@ class VideoInterview extends Component {
                   className={[classes.flexColumnCenter, classes.flexFullWidth]}
                   style={{
                     flex: 1,
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   <Button
@@ -1286,7 +1310,7 @@ class VideoInterview extends Component {
                     onClick={() => this.onGuidelinesPress()}
                     className={classes.roundedButton}
                     style={{
-                      minWidth: 200
+                      minWidth: 200,
                     }}
                   >
                     Proceed
@@ -1295,7 +1319,7 @@ class VideoInterview extends Component {
               </Box>
               <div
                 style={{
-                  flex: 1
+                  flex: 1,
                 }}
               >
                 {/* Reft Empty Container */}
@@ -1308,25 +1332,25 @@ class VideoInterview extends Component {
           <Container
             style={{
               height: "100%",
-              padding: 0
+              padding: 0,
             }}
           >
             <Box
               className={[classes.flexColumnCenter, classes.flexFullHeight]}
               style={{
-                flex: 5
+                flex: 5,
               }}
             >
               <Box
                 className={[classes.flexColumnCenter, classes.flexFullWidth]}
                 style={{
                   flex: 5,
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
               >
                 <Box
                   style={{
-                    marginTop: -50
+                    marginTop: -50,
                   }}
                 >
                   <Paper
@@ -1335,7 +1359,7 @@ class VideoInterview extends Component {
                       PaddingBottom: 20,
                       width: 400,
                       borderRadius: 10,
-                      backgroundColor: "#e8e8e8"
+                      backgroundColor: "#e8e8e8",
                     }}
                   >
                     <Typography
@@ -1351,7 +1375,7 @@ class VideoInterview extends Component {
                         // marginTop: 10,
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center"
+                        justifyContent: "center",
                       }}
                     >
                       <Typography
@@ -1376,7 +1400,7 @@ class VideoInterview extends Component {
                       component="div"
                       style={{
                         textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
-                        textAlign: "left"
+                        textAlign: "left",
                       }}
                     >
                       Total Interview Duration: {this.state.interview_duration}{" "}
@@ -1388,7 +1412,7 @@ class VideoInterview extends Component {
                     style={{
                       width: 400,
                       borderRadius: 10,
-                      backgroundColor: "#e8e8e8"
+                      backgroundColor: "#e8e8e8",
                     }}
                   >
                     <Typography
@@ -1411,7 +1435,7 @@ class VideoInterview extends Component {
                         flexDirection: "column",
                         padding: 20,
                         borderBottomRightRadius: 10,
-                        borderBottomLeftRadius: 10
+                        borderBottomLeftRadius: 10,
                       }}
                     >
                       <Typography
@@ -1446,7 +1470,7 @@ class VideoInterview extends Component {
                 className={[classes.flexColumnCenter, classes.flexFullWidth]}
                 style={{
                   flex: 1,
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
               >
                 <Button
@@ -1456,7 +1480,7 @@ class VideoInterview extends Component {
                   onClick={() => this.gotoLevel("question_screen")}
                   className={classes.roundedButton}
                   style={{
-                    minWidth: 200
+                    minWidth: 200,
                   }}
                 >
                   Start Interview
@@ -1470,25 +1494,25 @@ class VideoInterview extends Component {
           <Container
             style={{
               height: "100%",
-              padding: 0
+              padding: 0,
             }}
           >
             <Box
               className={[classes.flexColumnCenter, classes.flexFullHeight]}
               style={{
-                flex: 5
+                flex: 5,
               }}
             >
               <Box
                 className={[classes.flexColumnCenter, classes.flexFullWidth]}
                 style={{
                   flex: 5,
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
               >
                 <Box
                   style={{
-                    marginTop: -100
+                    marginTop: -100,
                   }}
                 >
                   <Typography
@@ -1508,7 +1532,7 @@ class VideoInterview extends Component {
                       PaddingBottom: 20,
                       width: 400,
                       borderRadius: 10,
-                      backgroundColor: "#e8e8e8"
+                      backgroundColor: "#e8e8e8",
                     }}
                   >
                     {/* <Typography
@@ -1554,7 +1578,7 @@ class VideoInterview extends Component {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 24
+                      fontSize: 24,
                     }}
                   >
                     {this.state.question_timer}
@@ -1568,7 +1592,7 @@ class VideoInterview extends Component {
                 className={[classes.flexColumnCenter, classes.flexFullWidth]}
                 style={{
                   flex: 1,
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
               >
                 <Button
@@ -1578,7 +1602,7 @@ class VideoInterview extends Component {
                   onClick={() => this.gotoLevel("recording_screen")}
                   className={classes.roundedButton}
                   style={{
-                    minWidth: 200
+                    minWidth: 200,
                   }}
                 >
                   Proceed
@@ -1596,7 +1620,7 @@ class VideoInterview extends Component {
                 display: "flex",
                 height: "100%",
                 flexDirection: "column",
-                justifyContent: "space-around"
+                justifyContent: "space-around",
               }}
             >
               <div
@@ -1607,14 +1631,14 @@ class VideoInterview extends Component {
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "center"
+                  justifyContent: "center",
                 }}
               >
                 <Paper
                   style={{
                     padding: 10,
                     width: "80%",
-                    borderRadius: 10
+                    borderRadius: 10,
                   }}
                 >
                   <Typography
@@ -1630,7 +1654,7 @@ class VideoInterview extends Component {
                       marginTop: 10,
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center"
+                      justifyContent: "center",
                     }}
                   >
                     <Typography
@@ -1645,7 +1669,7 @@ class VideoInterview extends Component {
                       align="center"
                       component="div"
                       style={{
-                        color: "#ff0000"
+                        color: "#ff0000",
                       }}
                     >
                       <Box fontWeight={800}>{this.state.answer_timer} Secs</Box>
@@ -1663,7 +1687,7 @@ class VideoInterview extends Component {
                   left: 0,
                   height: 450,
                   width: "100%",
-                  position: "relative"
+                  position: "relative",
                 }}
               >
                 <video
@@ -1675,7 +1699,7 @@ class VideoInterview extends Component {
                     zIndex: 0,
                     objectFit: "cover",
                     height: "auto",
-                    width: "100%"
+                    width: "100%",
                     // height:"100%"
                   }}
                 ></video>
@@ -1698,7 +1722,7 @@ class VideoInterview extends Component {
                   justifyContent: "center",
                   width: "100%",
                   top: 0,
-                  height: 150
+                  height: 150,
                 }}
               >
                 {/* <button onClick={this.StartVideoRecording}>Record</button> */}
@@ -1726,26 +1750,26 @@ class VideoInterview extends Component {
           <Container
             style={{
               height: "100%",
-              padding: 0
+              padding: 0,
             }}
           >
             <Box
               className={[classes.flexColumnCenter, classes.flexFullHeight]}
               style={{
-                flex: 5
+                flex: 5,
               }}
             >
               <Box
                 className={[classes.flexColumnCenter, classes.flexFullWidth]}
                 style={{
                   flex: 5,
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
               >
                 <Box
                   style={{
                     margin: "0 60px",
-                    marginTop: -200
+                    marginTop: -200,
                   }}
                 >
                   <div
@@ -1753,7 +1777,7 @@ class VideoInterview extends Component {
                       paddingTop: 20,
                       PaddingBottom: 20,
                       width: 500,
-                      borderRadius: 10
+                      borderRadius: 10,
                     }}
                   >
                     <Typography
@@ -1775,10 +1799,13 @@ class VideoInterview extends Component {
                         <div className="text-center">
                           {this.state.uploadProgress}%
                         </div>
-                        <LinearProgress
-                          variant="determinate"
-                          value={this.state.uploadProgress * 100}
-                        />
+                        <Box align="center">
+                          <LinearProgress
+                            mode="determinate"
+                            value={this.state.uploadProgress * 100}
+                            style={{ height: 6, width: 400, marginTop: 20 }}
+                          />
+                        </Box>
                       </React.Fragment>
                     )}
                     <br />
@@ -1802,7 +1829,7 @@ class VideoInterview extends Component {
                 className={[classes.flexColumnCenter, classes.flexFullWidth]}
                 style={{
                   flex: 2,
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
               >
                 {this.state.uploadProgress <= 1 ? (
@@ -1825,7 +1852,7 @@ class VideoInterview extends Component {
                   onClick={() => this.onUploadProceed()}
                   className={classes.roundedButton}
                   style={{
-                    minWidth: 200
+                    minWidth: 200,
                   }}
                 >
                   Proceed
@@ -1839,26 +1866,26 @@ class VideoInterview extends Component {
           <Container
             style={{
               height: "100%",
-              padding: 0
+              padding: 0,
             }}
           >
             <Box
               className={[classes.flexColumnCenter, classes.flexFullHeight]}
               style={{
-                flex: 5
+                flex: 5,
               }}
             >
               <Box
                 className={[classes.flexColumnCenter, classes.flexFullWidth]}
                 style={{
                   flex: 5,
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
               >
                 <Box
                   style={{
                     margin: "0 60px",
-                    marginTop: -200
+                    marginTop: -200,
                   }}
                 >
                   <div
@@ -1866,7 +1893,7 @@ class VideoInterview extends Component {
                       paddingTop: 20,
                       PaddingBottom: 20,
                       width: 500,
-                      borderRadius: 10
+                      borderRadius: 10,
                     }}
                   >
                     <Typography
@@ -1888,10 +1915,13 @@ class VideoInterview extends Component {
                         <div className="text-center">
                           {this.state.uploadProgress}%
                         </div>
-                        <LinearProgress
-                          variant="determinate"
-                          value={this.state.uploadProgress * 100}
-                        />
+                        <Box align="center">
+                          <LinearProgress
+                            mode="determinate"
+                            value={this.state.uploadProgress * 100}
+                            style={{ height: 6, width: 400, marginTop: 20 }}
+                          />
+                        </Box>
                       </React.Fragment>
                     )}
                     <br />
@@ -1915,7 +1945,7 @@ class VideoInterview extends Component {
                 className={[classes.flexColumnCenter, classes.flexFullWidth]}
                 style={{
                   flex: 2,
-                  textAlign: "center"
+                  textAlign: "center",
                 }}
               >
                 <Button
@@ -1926,7 +1956,7 @@ class VideoInterview extends Component {
                   onClick={() => this.onUploadProceed()}
                   className={classes.roundedButton}
                   style={{
-                    minWidth: 200
+                    minWidth: 200,
                   }}
                 >
                   Proceed
@@ -1941,13 +1971,13 @@ class VideoInterview extends Component {
           <Container
             style={{
               height: "100%",
-              padding: 0
+              padding: 0,
             }}
           >
             <div className={classes.flexFullHeight}>
               <div
                 style={{
-                  flex: 1
+                  flex: 1,
                 }}
               >
                 {/* Left Empty Container */}
@@ -1955,20 +1985,20 @@ class VideoInterview extends Component {
               <Box
                 className={[classes.flexColumnCenter, classes.flexFullHeight]}
                 style={{
-                  flex: 5
+                  flex: 5,
                 }}
               >
                 <Box
                   className={[classes.flexColumnCenter, classes.flexFullWidth]}
                   style={{
                     flex: 3,
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   <Box
                     style={{
                       marginTop: 0,
-                      height: 350
+                      height: 350,
                       //width: 200,
                       //height: imgHeight
                       //boxShadow: "0px 2.8px 2.2px rgba(0, 0, 0, 0.034)"
@@ -1984,7 +2014,7 @@ class VideoInterview extends Component {
                       component="div"
                       style={{
                         marginTop: 30,
-                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)"
+                        textShadow: "1px 1px rgba(0, 0, 0, 0.034)",
                       }}
                       variant="body1"
                     >
@@ -1996,7 +2026,7 @@ class VideoInterview extends Component {
                   className={[classes.flexColumnCenter, classes.flexFullWidth]}
                   style={{
                     flex: 1,
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   <Button
@@ -2004,9 +2034,10 @@ class VideoInterview extends Component {
                     size="small"
                     color="primary"
                     onClick={() => this.onFinish()}
+                    disabled={!this.state.enableLastScreenNextButton}
                     className={classes.roundedButton}
                     style={{
-                      minWidth: 200
+                      minWidth: 200,
                     }}
                   >
                     Next
@@ -2015,7 +2046,7 @@ class VideoInterview extends Component {
               </Box>
               <div
                 style={{
-                  flex: 1
+                  flex: 1,
                 }}
               >
                 {/* Reft Empty Container */}
@@ -2040,7 +2071,7 @@ class VideoInterview extends Component {
               top: 0,
               left: 0,
               right: 0,
-              bottom: 0
+              bottom: 0,
             }}
           >
             <div className={classes.root}>
@@ -2048,7 +2079,7 @@ class VideoInterview extends Component {
                 <Box
                   style={{
                     height: "100%",
-                    overflow: "hidden"
+                    overflow: "hidden",
                   }}
                 >
                   <InternetCheck
@@ -2056,7 +2087,7 @@ class VideoInterview extends Component {
                     style={{
                       color: "#fff",
                       backgroundColor: "#000",
-                      textAlign: "center"
+                      textAlign: "center",
                     }}
                   />
                   {this.state.renderVideoInterview &&

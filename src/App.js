@@ -14,6 +14,7 @@ import history from "./utils/history";
 // import { createBrowserHistory } from 'history';
 import { initGA, PageViewOnlyPath, Event } from "./analytics/Tracking";
 import { withRouter } from "react-router";
+import { AppContextProvider } from "./contexts/AppContextManager";
 // const history = createBrowserHistory();
 
 class App extends Component {
@@ -82,12 +83,14 @@ class App extends Component {
     if (!rootTree) return null;
     return (
       <Provider rootTree={rootTree}>
-        <AppRoutes
-          ref={(routerRef) => {
-            // this.ref = routerRef;
-            // registerNav(routerRef);
-          }}
-        ></AppRoutes>
+        <AppContextProvider>
+          <AppRoutes
+            ref={(routerRef) => {
+              // this.ref = routerRef;
+              // registerNav(routerRef);
+            }}
+          ></AppRoutes>
+        </AppContextProvider>
       </Provider>
     );
   }

@@ -24,7 +24,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  withStyles
+  withStyles,
 } from "@material-ui/core";
 import Modal from "react-bootstrap/Modal";
 import { CircleToBlockLoading } from "react-loadingg";
@@ -36,9 +36,9 @@ import apiCall from "../../services/apiCalls/apiService";
 import "./reactUnityStyles.css";
 import FullScreenButton from "../../components/FullScreenButton";
 
-const styles = theme => ({
+const styles = (theme) => ({
   icon: {
-    marginRight: theme.spacing(2)
+    marginRight: theme.spacing(2),
   },
   boxRoot: {
     //padding: theme.spacing(3, 2),
@@ -46,14 +46,18 @@ const styles = theme => ({
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    alignSelf: "center"
-  }
+    alignSelf: "center",
+  },
+  camStyles: {
+    opacity: 0,
+  },
 });
 
 let game_index = "";
 let videoRef = null;
 let captured_img_src = null;
 let imageCaptureInterval = 15000; // in ms
+let inputDevice = null;
 
 const WIDTH = 400;
 const HEIGHT = 400;
@@ -61,7 +65,7 @@ const HEIGHT = 400;
 let videoConstraints = {
   width: WIDTH,
   height: HEIGHT,
-  facingMode: "user"
+  facingMode: "user",
 };
 class ReactUnityBridge extends Component {
   constructor(props) {
@@ -70,7 +74,8 @@ class ReactUnityBridge extends Component {
     this.state = {
       showUnity: false,
       startVideo: false,
-      faceStatus: "Initializing camera. Please wait.."
+      faceStatus: "Initializing camera. Please wait..",
+      isCameraExists: false
     };
     this.isModelsLoaded = false;
     this.fullScreenRef = null;
@@ -80,13 +85,13 @@ class ReactUnityBridge extends Component {
       this.props.rootTree
     );
     game_index = user.currentAssessment.current_game;
-   // game_index = "mob-05";
+    // game_index = "mob-05";
     //this.OnDimensionChange = this.updateDimensions.bind(this);
     //game_index = "mob-11";
     if (game_index !== "") {
       this.state = {
         progression: 0,
-        openLoading: true
+        openLoading: true,
       };
 
       this.unityContent = new UnityContent(
@@ -94,7 +99,7 @@ class ReactUnityBridge extends Component {
         GameConfigModules[game_index].unityLoaderPath
       );
 
-      this.unityContent.on("sendDataToNativeJS", jsonData => {
+      this.unityContent.on("sendDataToNativeJS", (jsonData) => {
         // console.log("Data From Unity");
         let dataFromUnity = JSON.parse(jsonData);
         console.log(
@@ -130,21 +135,21 @@ class ReactUnityBridge extends Component {
           if (dataFromUnity.data_label === "gamedata") {
             this.clearAllTimers();
             this.setState({
-              startVideo: false
+              startVideo: false,
             });
           }
           let gameData = {
             name: game_index,
-            data: dataFromUnity.json_data
+            data: dataFromUnity.json_data,
           };
           apiCall
             .gameDataUpload(JSON.stringify(gameData))
-            .then(res => {
+            .then((res) => {
               if (res.status === 200) {
                 console.log("game or pause data successfully uploaded");
               }
             })
-            .catch(err => {
+            .catch((err) => {
               console.log("TCL: App -> componentDidMount -> err", err);
               console.log(err.response);
             });
@@ -152,7 +157,7 @@ class ReactUnityBridge extends Component {
           // Called when back or home is pressed in the game
           this.clearAllTimers();
           this.setState({
-            startVideo: false
+            startVideo: false,
           });
           user.currentAssessment.update_current_game("");
           this.props.history.goBack();
@@ -170,7 +175,7 @@ class ReactUnityBridge extends Component {
           // Called when proceed button is pressed in the game
           this.clearAllTimers();
           this.setState({
-            startVideo: false
+            startVideo: false,
           });
           user.currentAssessment.add_to_complete_games(game_index);
           user.currentAssessment.remove_from_games_to_play(game_index);
@@ -188,7 +193,7 @@ class ReactUnityBridge extends Component {
         if (canvas != null) {
           var width = canvas.width;
           var height = canvas.height;
-          setTimeout(function() {
+          setTimeout(function () {
             canvas.width = GameConfigModules[game_index].width;
             canvas.height = GameConfigModules[game_index].height;
             var resolution = width + "x" + height;
@@ -204,12 +209,12 @@ class ReactUnityBridge extends Component {
           user.userId
         );
       });
-      this.unityContent.on("progress", progression => {
+      this.unityContent.on("progress", (progression) => {
         // Now we can use the progression to for example
         // display it on our React app.
 
         this.setState({
-          progression: progression
+          progression: progression,
         });
       });
     } else {
@@ -228,22 +233,22 @@ class ReactUnityBridge extends Component {
 
   componentDidMount = async () => {
     const { history } = this.props;
-
+      this.setInputDevice();
     //window.addEventListener("resize", this.OnDimensionChange);
     // Hey, a popstate event happened!
     window.addEventListener("popstate", () => {
       //history.go(1);
-     // window.location.reload();
-     this.setState({
-       startVideo: false
-     })
+      // window.location.reload();
+      this.setState({
+        startVideo: false,
+      });
     });
 
     // Check game_index if not empty then only render unity
     if (game_index !== "") {
       this.setState(
         {
-          showUnity: true
+          showUnity: true,
         },
         () => {
           // if (this.fullScreenRef) {
@@ -265,10 +270,10 @@ class ReactUnityBridge extends Component {
   checkModelsLoaded = () => {
     if (this.isModelsLoaded) {
       console.log("Models loaded successfully");
-      this.setInputDevice();
+     
       this.setState(
         {
-          startVideo: true
+          startVideo: true,
         },
         () => {
           videoRef = this.webcam.current.video;
@@ -277,7 +282,7 @@ class ReactUnityBridge extends Component {
             console.log("on webcam video play");
             const displaySize = {
               width: videoRef.width,
-              height: videoRef.height
+              height: videoRef.height,
             };
             this.startCapture();
             this.webCameraFaceDetectionInterval = setInterval(async () => {
@@ -291,18 +296,18 @@ class ReactUnityBridge extends Component {
               if (detections.length === 1) {
                 console.log("One face found");
                 this.setState({
-                  faceStatus: "One face found"
+                  faceStatus: "One face found",
                 });
                 //this.capture();
               } else if (detections.length > 1) {
                 console.log("More than one face found");
                 this.setState({
-                  faceStatus: "More than one face found"
+                  faceStatus: "More than one face found",
                 });
               } else {
                 console.log("Face not found");
                 this.setState({
-                  faceStatus: "Face not found"
+                  faceStatus: "Face not found",
                 });
               }
             }, 1000);
@@ -318,10 +323,15 @@ class ReactUnityBridge extends Component {
   };
 
   setInputDevice = () => {
-    navigator.mediaDevices.enumerateDevices().then(async devices => {
-      let inputDevice = await devices.filter(
-        device => device.kind === "videoinput"
+    navigator.mediaDevices.enumerateDevices().then(async (devices) => {
+    inputDevice = await devices.filter(
+        (device) => device.kind === "videoinput"
       );
+      if(inputDevice.length >=1){
+        this.setState({
+          isCameraExists: true
+        })
+      }
       console.log("inputDevice", inputDevice);
     });
   };
@@ -334,10 +344,9 @@ class ReactUnityBridge extends Component {
 
   capture = async () => {
     if (!!this.webcam.current) {
-      if(this.state.faceStatus === "One face found")
-      {
+      if (this.state.faceStatus === "One face found") {
         // One face found
-      }else{
+      } else {
         // Not one face
       }
       captured_img_src = await this.webcam.current.getScreenshot();
@@ -350,17 +359,17 @@ class ReactUnityBridge extends Component {
         playerid: user.userId,
         game_name: game_index,
         timestamp: new Date().getTime().toString(),
-        encoded_image: temp_captured_src[1].toString()
+        encoded_image: temp_captured_src[1].toString(),
       };
       apiCall
         .imageDataUpload(JSON.stringify(cameraData))
-        .then(res => {
+        .then((res) => {
           console.log("TCL: App -> componentDidMount -> rsp", res);
           if (res.status === 200) {
             console.log("camera data successfully uploaded");
           }
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("TCL: App -> componentDidMount -> err", err);
           console.log(err.response);
           // const { status, data } = err.response;
@@ -398,7 +407,7 @@ class ReactUnityBridge extends Component {
             <div
               //className="gameContainer"
               style={{
-                backgroundColor: "#fff"
+                backgroundColor: "#fff",
               }}
             >
               {this.state.faceStatus && (
@@ -414,13 +423,14 @@ class ReactUnityBridge extends Component {
                   ref={this.webcam}
                   screenshotFormat="image/jpeg"
                   videoConstraints={videoConstraints}
+                  className={classes.camStyles}
                 />
               )}
               <Unity
                 unityContent={this.unityContent}
                 width="100%"
                 height="100%"
-                ref={ref => (this.unityRef = ref)}
+                ref={(ref) => (this.unityRef = ref)}
               />
             </div>
             {/* <Unity unityContent={this.unityContent} /> */}
