@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter as Router, Route, Switch, Link } from "react-router-dom";
 import { registerNav } from "./services/navigation";
@@ -15,13 +15,15 @@ import history from "./utils/history";
 import { initGA, PageViewOnlyPath, Event } from "./analytics/Tracking";
 import { withRouter } from "react-router";
 import { AppContextProvider } from "./contexts/AppContextManager";
+import { isMobile } from "react-device-detect";
+import NotAvailableCard from "./components/NotAvailableCard";
 // const history = createBrowserHistory();
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      rootTree: null,
+      rootTree: null
     };
     // this.ref = React.createRef();
     document.title = "PerspectAI";
@@ -53,7 +55,7 @@ class App extends Component {
     authService.setAppVersion(appConfig.appVersion);
     const { rootTree } = setUpRootStore();
     this.setState({
-      rootTree,
+      rootTree
     });
   }
 
@@ -81,11 +83,14 @@ class App extends Component {
   render() {
     const { rootTree } = this.state;
     if (!rootTree) return null;
+    if (isMobile) {
+      return <NotAvailableCard />;
+    }
     return (
       <Provider rootTree={rootTree}>
         <AppContextProvider>
           <AppRoutes
-            ref={(routerRef) => {
+            ref={routerRef => {
               // this.ref = routerRef;
               // registerNav(routerRef);
             }}
