@@ -6,7 +6,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-02": {
     module_name: "ODD ONE OUT",
@@ -15,7 +15,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-03": {
     module_name: "FLASH",
@@ -24,7 +24,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-04": {
     module_name: "RAPID RECALL",
@@ -33,7 +33,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-05": {
     module_name: "ATTENTION NINJA",
@@ -42,7 +42,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-06": {
     module_name: "TURN IT OUT",
@@ -51,7 +51,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-07": {
     module_name: "STROOP SHAPES",
@@ -60,7 +60,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-08": {
     module_name: "SPOT ON",
@@ -69,7 +69,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-09": {
     module_name: "CORNER STONE",
@@ -78,7 +78,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-10": {
     module_name: "EXPRESS AGENT",
@@ -87,7 +87,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-11": {
     module_name: "DR SINGH'S MOTIVES",
@@ -96,7 +96,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-12": {
     module_name: "VIDEO INTERVIEW",
@@ -105,7 +105,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "react",
-    module_supported: true
+    module_supported: true,
   },
   "mob-13": {
     module_name: "PEAQ - 1",
@@ -114,7 +114,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "online",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-14": {
     module_name: "PEAQ - 2",
@@ -123,7 +123,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "online",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-15": {
     module_name: "PEAQ - 3",
@@ -132,7 +132,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "online",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-16-l1": {
     module_name: "EXPRESS AGENT",
@@ -141,7 +141,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-16-l2": {
     module_name: "EXPRESS AGENT",
@@ -150,7 +150,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-16-l3": {
     module_name: "EXPRESS AGENT",
@@ -159,7 +159,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-17": {
     module_name: "BRAIN SWITCH",
@@ -168,7 +168,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-18": {
     module_name: "ARITHMA",
@@ -177,7 +177,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-19": {
     module_name: "FREIGHT TRANSPORT",
@@ -186,7 +186,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
+    module_supported: true,
   },
   "mob-20": {
     module_name: "LANGUAGE TEST",
@@ -195,7 +195,7 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "react",
-    module_supported: true
+    module_supported: true,
   },
   "mob-21": {
     module_name: "CODE TEST",
@@ -204,6 +204,42 @@ export const Modules = {
     module_status: "locked",
     module_state: "offline",
     module_source: "unity",
-    module_supported: true
-  }
+    module_supported: true,
+  },
+  "mob-22": {
+    module_name: "Foodie Friend",
+    key: "mob-22",
+    module_icon_path: require("../../assets/Game_Icons/Foodie_Friend.png"),
+    module_status: "locked",
+    module_state: "offline",
+    module_source: "unity",
+    module_supported: true,
+  },
+  "mob-23": {
+    module_name: "Swapped",
+    key: "mob-23",
+    module_icon_path: require("../../assets/Game_Icons/Swapped.png"),
+    module_status: "locked",
+    module_state: "offline",
+    module_source: "unity",
+    module_supported: true,
+  },
+  "mob-24": {
+    module_name: "Numero",
+    key: "mob-24",
+    module_icon_path: require("../../assets/Game_Icons/Numero.png"),
+    module_status: "locked",
+    module_state: "offline",
+    module_source: "unity",
+    module_supported: true,
+  },
+  "mob-25": {
+    module_name: "Labyrinth",
+    key: "mob-25",
+    module_icon_path: require("../../assets/Game_Icons/Labyrinth.png"),
+    module_status: "locked",
+    module_state: "offline",
+    module_source: "unity",
+    module_supported: true,
+  },
 };

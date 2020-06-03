@@ -149,13 +149,14 @@ class AssessmentModules extends Component {
           user.userId,
           user.currentAssessment.assessmentId
         );
-        if (res.status == 200) {
+        if (res.status === 200) {
           const {
             game_play_order,
             games_to_play,
             completed_games,
             activation_time,
             end_date,
+            has_proc,
           } = res.data;
           user.currentAssessment.clear_games();
           user.currentAssessment.setup_games(
@@ -165,6 +166,7 @@ class AssessmentModules extends Component {
             activation_time,
             end_date
           );
+          user.currentAssessment.updateProctor(has_proc);
           setTimeout(() => {
             this.setModuleOrder();
           }, 200);
@@ -252,7 +254,12 @@ class AssessmentModules extends Component {
       this.state.final_module_data[index]["key"]
     );
 
-    this.modalRef.handleOpen();
+    // Show Instructions Popup if proctoring enabled
+    if (currentAssessment.has_proc) {
+      this.modalRef.handleOpen();
+    } else {
+      this.startModule();
+    }
 
     // this.setState({
     //   gamenumber: index,

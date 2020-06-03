@@ -75,7 +75,7 @@ class ReactUnityBridge extends Component {
       showUnity: false,
       startVideo: false,
       faceStatus: "Initializing camera. Please wait..",
-      isCameraExists: false
+      isCameraExists: false,
     };
     this.isModelsLoaded = false;
     this.fullScreenRef = null;
@@ -233,7 +233,8 @@ class ReactUnityBridge extends Component {
 
   componentDidMount = async () => {
     const { history } = this.props;
-      this.setInputDevice();
+    const { currentAssessment } = this.props.rootTree.user;
+    
     //window.addEventListener("resize", this.OnDimensionChange);
     // Hey, a popstate event happened!
     window.addEventListener("popstate", () => {
@@ -258,19 +259,25 @@ class ReactUnityBridge extends Component {
       );
 
       // Loading Face Detection Model
-      const MODEL_URL = process.env.PUBLIC_URL + "/models";
-      await faceapi.loadTinyFaceDetectorModel(MODEL_URL);
-      setTimeout(() => {
-        this.isModelsLoaded = true;
-        this.checkModelsLoaded();
-      }, 500);
+      if (currentAssessment.has_proc) {
+        // With Proctoring Enabled
+        this.setInputDevice();
+        const MODEL_URL = process.env.PUBLIC_URL + "/models";
+        await faceapi.loadTinyFaceDetectorModel(MODEL_URL);
+        setTimeout(() => {
+          this.isModelsLoaded = true;
+          this.checkModelsLoaded();
+        }, 500);
+      } else {
+        // With Proctoring Disabled
+      }
     }
   };
 
   checkModelsLoaded = () => {
     if (this.isModelsLoaded) {
       console.log("Models loaded successfully");
-     
+
       this.setState(
         {
           startVideo: true,
@@ -324,13 +331,13 @@ class ReactUnityBridge extends Component {
 
   setInputDevice = () => {
     navigator.mediaDevices.enumerateDevices().then(async (devices) => {
-    inputDevice = await devices.filter(
+      inputDevice = await devices.filter(
         (device) => device.kind === "videoinput"
       );
-      if(inputDevice.length >=1){
+      if (inputDevice.length >= 1) {
         this.setState({
-          isCameraExists: true
-        })
+          isCameraExists: true,
+        });
       }
       console.log("inputDevice", inputDevice);
     });

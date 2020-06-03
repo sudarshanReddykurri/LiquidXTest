@@ -1,5 +1,5 @@
 const appConfig = {
-    appVersion: "1.0.5",
+    appVersion: "1.0.6",
     baseURL: "https://prspmobapi.perspect.ai/v3-pilot",
     trackingId: "UA-156039808-1"
 }

@@ -76,10 +76,12 @@ const styles = (theme) => ({
 const validationSchema = Yup.object().shape({
   firstName: Yup.string()
     .required("First Name is a required field")
+    .matches(/^[A-Za-z]+$/, "Only alphabets are allowed in the First Name")
     .min(2, "Your First Name is too short")
     .max(20, "Your First Name is too Long"),
   lastName: Yup.string()
     .required("Last Name is a required field")
+    .matches(/^[A-Za-z]+$/, "Only alphabets are allowed in the Last Name")
     .min(2, "Your Last Name is too short")
     .max(20, "Your Last Name is too Long"),
   email: Yup.string("Enter your email")

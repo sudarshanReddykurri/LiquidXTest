@@ -7,7 +7,7 @@ import {
   getSnapshot,
   applySnapshot,
   getParent,
-  onPatch
+  onPatch,
 } from "mobx-state-tree";
 import uuid from "uuid";
 import { now } from "moment";
@@ -18,7 +18,7 @@ const AssessmentModel = types.model("Assessment", {
   assessmentName: types.string,
   companyName: types.string,
   expiryTime: types.number,
-  logoUrl: types.string
+  logoUrl: types.string,
 });
 
 export const CurrentAssessmentModel = types
@@ -29,12 +29,13 @@ export const CurrentAssessmentModel = types
     activationTime: types.number,
     expiryTime: types.number,
     logoUrl: types.string,
+    has_proc: types.optional(types.boolean, false),
     game_play_order: types.array(types.string),
     games_to_play: types.array(types.string),
     complete_games: types.array(types.string),
-    current_game: types.string
+    current_game: types.string,
   })
-  .actions(self => {
+  .actions((self) => {
     function update_current_assessment_info(
       assessmentId,
       assessmentName,
@@ -49,7 +50,7 @@ export const CurrentAssessmentModel = types
         assessmentName: assessmentName,
         companyName: companyName,
         expiryTime: expiryTime,
-        logoUrl: logoUrl
+        logoUrl: logoUrl,
       });
     }
 
@@ -69,7 +70,7 @@ export const CurrentAssessmentModel = types
         games_to_play: games_to_play,
         complete_games: complete_games,
         activationTime: activationTime,
-        expiryTime: expiryTime
+        expiryTime: expiryTime,
       });
     }
 
@@ -80,28 +81,28 @@ export const CurrentAssessmentModel = types
         games_to_play: [],
         complete_games: [],
         activationTime: -1,
-        expiryTime: -1
+        expiryTime: -1,
       });
     }
 
     function update_current_game(current_game) {
       applySnapshot(self, {
         ...self,
-        current_game: current_game
+        current_game: current_game,
       });
     }
 
     function update_activation_time(activationTime) {
       applySnapshot(self, {
         ...self,
-        activationTime: activationTime
+        activationTime: activationTime,
       });
     }
 
     function update_expiry_time(expiryTime) {
       applySnapshot(self, {
         ...self,
-        expiryTime: expiryTime
+        expiryTime: expiryTime,
       });
     }
 
@@ -111,7 +112,7 @@ export const CurrentAssessmentModel = types
       );
       applySnapshot(self, {
         ...self,
-        game_play_order: game_play_order
+        game_play_order: game_play_order,
       });
     }
 
@@ -126,7 +127,7 @@ export const CurrentAssessmentModel = types
       }
       applySnapshot(self, {
         ...self,
-        games_to_play: temp_place_holder
+        games_to_play: temp_place_holder,
       });
     }
 
@@ -136,9 +137,14 @@ export const CurrentAssessmentModel = types
       );
       applySnapshot(self, {
         ...self,
-        complete_games: [...self.complete_games, game_name]
+        complete_games: [...self.complete_games, game_name],
       });
     }
+
+    function updateProctor(is_Proctoring_Enabled) {
+      self.has_proc = is_Proctoring_Enabled;
+    }
+
     return {
       setup_games,
       clear_games,
@@ -148,10 +154,11 @@ export const CurrentAssessmentModel = types
       update_current_assessment_info,
       remove_from_games_to_play,
       update_game_play_order,
-      add_to_complete_games
+      add_to_complete_games,
+      updateProctor,
     };
   })
-  .views(self => {
+  .views((self) => {
     function getGamePlayOrder() {
       return self.game_play_order;
     }
@@ -161,8 +168,16 @@ export const CurrentAssessmentModel = types
     function getCompleteGames() {
       return self.complete_games;
     }
+    function isProctoringEnabled() {
+      return self.has_proc;
+    }
 
-    return { getGamePlayOrder, getGamesToPlay, getCompleteGames };
+    return {
+      getGamePlayOrder,
+      getGamesToPlay,
+      getCompleteGames,
+      isProctoringEnabled,
+    };
   });
 
 const UserModel = types
@@ -185,13 +200,14 @@ const UserModel = types
       activationTime: -1,
       expiryTime: -1,
       logoUrl: "",
+      has_proc: false,
       game_play_order: [],
       games_to_play: [],
       complete_games: [],
-      current_game: ""
-    })
+      current_game: "",
+    }),
   })
-  .actions(self => {
+  .actions((self) => {
     // Specify list of functions that can alter the tree
     // Only way we should edit the tree is through actions
 
@@ -216,7 +232,7 @@ const UserModel = types
         dob,
         registrationImages,
         auth_token,
-        accessType
+        accessType,
       });
     }
 
@@ -238,14 +254,14 @@ const UserModel = types
             assessmentName,
             companyName,
             expiryTime,
-            logoUrl
+            logoUrl,
           },
-          ...self.assessments
-        ]
+          ...self.assessments,
+        ],
       });
     }
 
-    function updateRegisterImages(isImagesRegistered){
+    function updateRegisterImages(isImagesRegistered) {
       self.registrationImages = isImagesRegistered;
     }
 
@@ -257,9 +273,15 @@ const UserModel = types
       getParent(self, 2).remove(self);
     }
 
-    return { updateUser, newAssessment, updateRegisterImages, clearAllAssessments, remove };
+    return {
+      updateUser,
+      newAssessment,
+      updateRegisterImages,
+      clearAllAssessments,
+      remove,
+    };
   })
-  .views(self => {
+  .views((self) => {
     // Here Memoization takes place and Memoization increases performance
     function getAssessmentsCount() {
       return self.assessments.length;
@@ -354,7 +376,7 @@ const UserModel = types
   });
 
 const RootModel = types.model("Root", {
-  user: UserModel
+  user: UserModel,
 });
 
 export { RootModel };
