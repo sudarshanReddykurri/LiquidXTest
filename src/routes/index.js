@@ -20,6 +20,7 @@ import { Provider } from "mobx-react";
 
 import LoginContainer from "../containers/authContainers/LoginContainer";
 import SignupContainer from "../containers/authContainers/SignupContainer";
+import EngagementSignupContainer from "../containers/authContainers/EngagementSignupContainer";
 import ForgotPasswordContainer from "../containers/authContainers/ForgotPasswordContainer";
 import OTPVerifyContainer from "../containers/authContainers/OTPVerifyContainer";
 import AboutContainer from "../containers/AboutContainer";
@@ -65,6 +66,7 @@ const AppRoutes = forwardRef((props, ref) => {
       {/* <Provider {...stores}> */}
       <Switch>
         <NoAuthRoute path="/signup" component={SignupContainer} />
+        <NoAuthRoute path="/signupBC19" component={EngagementSignupContainer} />
         {/* <Route path="/" component={LoginContainer} /> */}
         <NoAuthRoute path="/login" component={LoginContainer} />
 

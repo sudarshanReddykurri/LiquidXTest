@@ -26,7 +26,8 @@ import authService from "../../services/auth/authService";
 import { inject, observer } from "mobx-react";
 import { withRouter } from "react-router-dom";
 import AlertDialog from "../../components/AlertDialog";
-import {  PageViewOnlyPath, Event } from "../../analytics/Tracking";
+import { PageViewOnlyPath, Event } from "../../analytics/Tracking";
+import { AppContext } from "../../contexts/AppContextManager";
 
 const styles = theme => ({
   paper: {
@@ -116,174 +117,211 @@ class SetNewPasswordContainer extends Component {
             Please update your new password here
           </Typography>
           {/* <form className={classes.form} noValidate> */}
-          <Formik
-            initialValues={{ password: "", confirmPassword: "" }}
-            validationSchema={validationSchema}
-            onSubmit={(values, actions) => {
-              console.log("values", values);
-              let payload = {
-                email_id: this.props.match.params.emailId,
-                otp: this.props.match.params.otp,
-                passwd: values.confirmPassword
-              };
-              actions.setFieldTouched("password");
-              actions.setFieldTouched("confirmPassword");
-              actions.setSubmitting(true);
+          <AppContext.Consumer>
+            {({ isUserRegisteredForEngagement, setEmailID, setIsUserRegisteredForEngagement }) => (
+              <Formik
+                initialValues={{ password: "", confirmPassword: "" }}
+                validationSchema={validationSchema}
+                onSubmit={(values, actions) => {
+                  console.log("values", values);
+                  let payload = {
+                    email_id: this.props.match.params.emailId,
+                    otp: this.props.match.params.otp,
+                    passwd: values.confirmPassword
+                  };
+                  actions.setFieldTouched("password");
+                  actions.setFieldTouched("confirmPassword");
+                  actions.setSubmitting(true);
 
-              Event("USER", "User tries to reset password", "SetNewPasswordContainer");
-
-              apiCall
-                .afterOTPUpdateResetPassword(payload)
-                .then(res => {
-                  console.log("TCL: App -> componentDidMount -> rsp", res);
-                  actions.setSubmitting(false);
-                  if (res.status === 200) {
-                    data.login_id = this.props.match.params.emailId;
-                    data.passwd = values.password;
-                    apiCall
-                      .userLogin(data)
-                      .then(response => {
-                        console.log(
-                          "TCL: App -> componentDidMount -> rsp",
-                          response
-                        );
-                        // actions.setSubmitting(false);
-                        if (response.status === 200) {
-                          const { rootTree } = this.props;
-                          if (!rootTree) return null;
-                          let userData = response.data.data;
-                          console.log(
-                            "TCL: LoginContainer -> render -> userData",
-                            userData
-                          );
-
-                          rootTree.user.updateUser(
-                            userData.userId,
-                            userData.fullName,
-                            userData.emailId,
-                            userData.gender,
-                            parseInt(userData.mobileNo),
-                            userData.DOB,
-                            userData.registrationImages,
-                            "",
-                            userData.acc_lvl
-                          );
-
-                          authService.setToken(userData.auth_token);
-                          if (userData.registrationImages) {
-                            this.props.history.push("/home");
-                            PageViewOnlyPath("/home");
-                          } else {
-                            this.props.history.push("/image_register");
-                            PageViewOnlyPath("/image_register");
-                          }
-
-                          //jumpTo("/home");
-                        }
-                      })
-                      .catch(err => {
-                        console.log(
-                          "TCL: App -> componentDidMount -> err",
-                          err
-                        );
-                        console.log(err.response);
-                        const { status, data } = err.response;
-                        this.alertRef.handleOpenDialog(
-                          `Failed processing request`,
-                          data.message
-                        );
-                        actions.setSubmitting(false);
-                      });
-                    //jumpTo("/otpverify");
-                  }
-                })
-                .catch(err => {
-                  console.log("TCL: App -> componentDidMount -> err", err);
-                  console.log(err.response);
-                  const { status, data } = err.response;
-                  this.alertRef.handleOpenDialog(
-                    `Failed processing request`,
-                    data.message
+                  Event(
+                    "USER",
+                    "User tries to reset password",
+                    "SetNewPasswordContainer"
                   );
-                  actions.setSubmitting(false);
-                });
 
-              // apiCall
-              //   .forgotPassword(data)
-              //   .then(res => {
-              //     console.log("TCL: App -> componentDidMount -> rsp", res);
-              //     actions.setSubmitting(false);
-              //     if (res.status == 200) {
-              //       jumpTo("/otpverify");
-              //     }
-              //   })
-              //   .catch(err => {
-              //     console.log("TCL: App -> componentDidMount -> err", err);
-              //     actions.setSubmitting(false);
-              //   });
-            }}
-            render={formikProps => (
-              <React.Fragment>
-                <Form>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    name="password"
-                    label="Password"
-                    type="password"
-                    id="password"
-                    autoComplete="current-password"
-                    helperText={
-                      formikProps.touched.password
-                        ? formikProps.errors.password
-                        : ""
-                    }
-                    error={
-                      formikProps.touched.password &&
-                      Boolean(formikProps.errors.password)
-                    }
-                    onChange={formikProps.handleChange("password")}
-                  />
-                  <br />
-                  <br />
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    name="confirmPassword"
-                    label="Confirm Password"
-                    type="password"
-                    id="confirmPassword"
-                    autoComplete="current-password"
-                    helperText={
-                      formikProps.touched.confirmPassword
-                        ? formikProps.errors.confirmPassword
-                        : ""
-                    }
-                    error={
-                      formikProps.touched.confirmPassword &&
-                      Boolean(formikProps.errors.confirmPassword)
-                    }
-                    onChange={formikProps.handleChange("confirmPassword")}
-                  />
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    color="primary"
-                    className={classes.submit}
-                    onClick={formikProps.handleSubmit}
-                    disabled={formikProps.isSubmitting}
-                    // component={Link}
-                    // to="/otpverify"
-                  >
-                    Submit
-                  </Button>
-                </Form>
-              </React.Fragment>
+                  apiCall
+                    .afterOTPUpdateResetPassword(payload)
+                    .then(res => {
+                      console.log("TCL: App -> componentDidMount -> rsp", res);
+                      actions.setSubmitting(false);
+                      if (res.status === 200) {
+                        data.login_id = this.props.match.params.emailId;
+                        data.passwd = values.password;
+
+                        apiCall
+                          .userExists(data.login_id)
+                          .then(res => {
+                            console.log(
+                              "TCL: App -> componentDidMount -> rsp",
+                              res
+                            );
+                            actions.setSubmitting(false);
+                            if (res.status === 200) {
+                              const { rootTree } = this.props;
+                              if (!rootTree) return null;
+                              setEmailID(data.login_id);
+                              setIsUserRegisteredForEngagement(
+                                res.data.bc19_user
+                              );
+
+                              apiCall
+                                .userLogin(data)
+                                .then(response => {
+                                  console.log(
+                                    "TCL: App -> componentDidMount -> rsp",
+                                    response
+                                  );
+                                  // actions.setSubmitting(false);
+                                  if (response.status === 200) {
+                                    const { rootTree } = this.props;
+                                    if (!rootTree) return null;
+                                    let userData = response.data.data;
+                                    console.log(
+                                      "TCL: LoginContainer -> render -> userData",
+                                      userData
+                                    );
+
+                                    rootTree.user.updateUser(
+                                      userData.userId,
+                                      userData.fullName,
+                                      userData.emailId,
+                                      userData.hasOwnProperty("gender") &&
+                                        userData.gender
+                                        ? userData.gender
+                                        : "",
+                                      userData.hasOwnProperty("mobileNo") &&
+                                        userData.mobileNo
+                                        ? parseInt(userData.mobileNo)
+                                        : 0,
+                                      userData.DOB,
+                                      userData.registrationImages,
+                                      "",
+                                      userData.acc_lvl
+                                    );
+                                    console.log(
+                                      "isUserRegisteredForEngagement",
+                                      isUserRegisteredForEngagement
+                                    );
+                                    authService.setToken(userData.auth_token);
+                                    if (isUserRegisteredForEngagement) {
+                                      this.props.history.push("/home");
+                                      PageViewOnlyPath("/home");
+                                    } else {
+                                      if (userData.registrationImages) {
+                                        this.props.history.push("/home");
+                                        PageViewOnlyPath("/home");
+                                      } else {
+                                        this.props.history.push(
+                                          "/image_register"
+                                        );
+                                        PageViewOnlyPath("/image_register");
+                                      }
+                                    }
+
+                                    //jumpTo("/home");
+                                  }
+                                })
+                                .catch(err => {
+                                  console.log(
+                                    "TCL: App -> componentDidMount -> err",
+                                    err
+                                  );
+                                  console.log(err.response);
+                                  const { status, data } = err.response;
+                                  this.alertRef.handleOpenDialog(
+                                    `Failed processing request`,
+                                    data.message
+                                  );
+                                  actions.setSubmitting(false);
+                                });
+                            }
+                          })
+                          .catch(err => {
+                            console.log(
+                              "TCL: App -> componentDidMount -> err",
+                              err
+                            );
+                            console.log(err.response);
+                          });
+
+                        //jumpTo("/otpverify");
+                      }
+                    })
+                    .catch(err => {
+                      console.log("TCL: App -> componentDidMount -> err", err);
+                      console.log(err.response);
+                      const { status, data } = err.response;
+                      this.alertRef.handleOpenDialog(
+                        `Failed processing request`,
+                        data.message
+                      );
+                      actions.setSubmitting(false);
+                    });
+                }}
+                render={formikProps => (
+                  <React.Fragment>
+                    <Form>
+                      <TextField
+                        variant="outlined"
+                        required
+                        fullWidth
+                        name="password"
+                        label="Password"
+                        type="password"
+                        id="password"
+                        autoComplete="current-password"
+                        helperText={
+                          formikProps.touched.password
+                            ? formikProps.errors.password
+                            : ""
+                        }
+                        error={
+                          formikProps.touched.password &&
+                          Boolean(formikProps.errors.password)
+                        }
+                        onChange={formikProps.handleChange("password")}
+                      />
+                      <br />
+                      <br />
+                      <TextField
+                        variant="outlined"
+                        required
+                        fullWidth
+                        name="confirmPassword"
+                        label="Confirm Password"
+                        type="password"
+                        id="confirmPassword"
+                        autoComplete="current-password"
+                        helperText={
+                          formikProps.touched.confirmPassword
+                            ? formikProps.errors.confirmPassword
+                            : ""
+                        }
+                        error={
+                          formikProps.touched.confirmPassword &&
+                          Boolean(formikProps.errors.confirmPassword)
+                        }
+                        onChange={formikProps.handleChange("confirmPassword")}
+                      />
+                      <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        color="primary"
+                        className={classes.submit}
+                        onClick={formikProps.handleSubmit}
+                        disabled={formikProps.isSubmitting}
+                        // component={Link}
+                        // to="/otpverify"
+                      >
+                        Submit
+                      </Button>
+                    </Form>
+                  </React.Fragment>
+                )}
+              />
             )}
-          />
+          </AppContext.Consumer>
           {/* </form> */}
         </div>
       </Container>
