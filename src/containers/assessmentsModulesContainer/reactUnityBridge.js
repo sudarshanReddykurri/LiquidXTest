@@ -259,7 +259,8 @@ class ReactUnityBridge extends Component {
       );
 
       // Loading Face Detection Model
-      if (currentAssessment.has_proc) {
+      if (currentAssessment.isProctoringEnabled()) {
+        console.log("currentAssessment.has_proc 1",currentAssessment.has_proc);
         // With Proctoring Enabled
         this.setInputDevice();
         const MODEL_URL = process.env.PUBLIC_URL + "/models";
@@ -270,6 +271,7 @@ class ReactUnityBridge extends Component {
         }, 500);
       } else {
         // With Proctoring Disabled
+        console.log("currentAssessment.has_proc 2",currentAssessment.has_proc);
       }
     }
   };
@@ -406,6 +408,7 @@ class ReactUnityBridge extends Component {
 
   render() {
     const { classes } = this.props;
+    const { currentAssessment } = this.props.rootTree.user;
     return (
       <Fragment>
         {this.state.showUnity ? (
@@ -422,7 +425,7 @@ class ReactUnityBridge extends Component {
                   <b>FaceDetection:</b> {this.state.faceStatus}
                 </Typography>
               )}
-              {this.state.startVideo && (
+              {this.state.startVideo && currentAssessment.isProctoringEnabled() && (
                 <Webcam
                   audio={false}
                   width={WIDTH}
