@@ -1,0 +1,70 @@
+Test 1: Please explain what is wrong with this code.
+
+The code is compiling and I am able to run it with out any issues. But i noticed lag on when playing. 
+
+But its not a good approach to spawn multiple items at once. As Spawning is an expense operation to perform. Running a loop for spawning will make it more expensive operation.
+We need to pool the actors and can reuse them as required or incase if we need those many objects then Instancing might help.
+
+Moreover TArray in Unreal is same as std::vector in C++.
+In std::vector memory will be increased in powers of 2.
+After adding an items if vecotr the size limit is reached then a new memoryblock with double the size will be created.
+The contents of older memory will be copied to newer.
+The older memory is freed.
+
+Improvements:
+The above systax can be improvised. Like for PrintAarray we can make param as const as we are only using it for Reading Purpose.
+
+
+
+Test 2: Implement gameplay features
+
+THe above project has the following features:
+
+-> Jetpack
+-> Opening doors
+-> Triggering switches 
+-> Speaking with an NPC
+-> Picking up and throwing the cubes
+-> Launch Pad
+
+Jetpack:
+To use Jetpack Press the "Space Bar".
+
+Doors:
+Its a trigeer based event. When near the doors, the door will be open by rotate. Considered the player direction and the door will be opened properly.
+
+Triggering Switches:
+Add a toogle light functionality based on a overlap event. Light Will turn off and turn on.
+
+Speaking with an NPC:
+Added basic implementation of NPC Feature. 
+When near the NPC, Press "E" key to interact. Instruction will change if "E" is pressed multiple times.
+
+Picking up and throwing the cubes:
+Implemented basic mechanic to pick and throw the cubes.
+To pick, go near the cubes. They will be auto attached to the one of the player hand.
+To throw the cube, Use "Left Mouse Button" or "T" key on the keyboard.
+
+Launch Pad:
+Its a trigger based event. To check the functioanlity go near the launch pad. The player will be launched.
+
+
+Total Time Taken: 7 hrs
+Considering the limited time I am able to finish the basic implementation of the above mechanic. If given time there is scope for polishing.
+I used C++ for this project. Used Blueprints limitedly, only for showing widget for NPCs.
+
+Polishing:
+Code can be Modularized.
+Mechanics can be improvized further by giving additioanl controls.
+I used casting in some places which can be replaced with interfaces.
+Some mechanic needs UI for example for jectpack we can show fuel indicator etc.,.
+SFX and VFX can be added.
+Animations can be added for Pickups.
+
+Issues:
+Had faced issues with collisions mainly overlap events but later fixed it by debugging.
+
+Blockers:
+Engine Hot Relaoding Issues took some time.
+
+
